@@ -8,6 +8,8 @@ import {
   BASE_URL,
   COMPANY_NAME,
   COMPANY_EMAIL,
+  COMPANY_PHONE_1,
+  COMPANY_ADDRESS,
   COMPANY_FOUNDED,
   COMPANY_DESCRIPTION,
 } from "@/lib/config";
@@ -90,6 +92,14 @@ const organizationSchema = {
   name: COMPANY_NAME,
   url: BASE_URL,
   email: COMPANY_EMAIL,
+  telephone: COMPANY_PHONE_1,
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: COMPANY_ADDRESS,
+    addressLocality: "Karur",
+    postalCode: "639002",
+    addressCountry: "IN",
+  },
   description: COMPANY_DESCRIPTION,
   foundingDate: COMPANY_FOUNDED,
   knowsAbout: [

@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { Zap, Mail, X, Link2, GitFork } from "lucide-react";
+import { Zap, Mail, X, Link2, GitFork, Phone, MapPin } from "lucide-react";
+import {
+  COMPANY_EMAIL,
+  COMPANY_PHONE_1,
+  COMPANY_PHONE_2,
+  COMPANY_ADDRESS,
+} from "@/lib/config";
 
 const footerLinks = {
   Company: [
@@ -25,7 +31,7 @@ export default function Footer() {
     <footer className="border-t border-white/5 bg-[#080E1C]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
-          {/* Brand */}
+          {/* Brand + contact info */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#8B5CF6] flex items-center justify-center">
@@ -36,13 +42,46 @@ export default function Footer() {
                 <span className="text-[#00D4FF]"> Technologies</span>
               </span>
             </Link>
-            <p className="text-[#64748B] text-sm leading-relaxed max-w-xs">
+            <p className="text-[#64748B] text-sm leading-relaxed max-w-xs mb-5">
               Building intelligent software that empowers businesses to grow
               faster with AI, automation, and data science.
             </p>
-            <div className="flex items-center gap-3 mt-6">
+
+            {/* Contact details */}
+            <ul className="space-y-2.5 mb-6">
+              <li className="flex items-start gap-2.5">
+                <MapPin size={14} className="text-[#475569] mt-0.5 shrink-0" />
+                <span className="text-[#64748B] text-xs leading-relaxed">
+                  {COMPANY_ADDRESS}
+                </span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Phone size={14} className="text-[#475569] shrink-0" />
+                <div className="flex gap-3 text-xs">
+                  <a href={`tel:${COMPANY_PHONE_1}`} className="text-[#64748B] hover:text-[#00D4FF] transition-colors">
+                    {COMPANY_PHONE_1}
+                  </a>
+                  <span className="text-[#334155]">/</span>
+                  <a href={`tel:${COMPANY_PHONE_2}`} className="text-[#64748B] hover:text-[#00D4FF] transition-colors">
+                    {COMPANY_PHONE_2}
+                  </a>
+                </div>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Mail size={14} className="text-[#475569] shrink-0" />
+                <a
+                  href={`mailto:${COMPANY_EMAIL}`}
+                  className="text-[#64748B] hover:text-[#00D4FF] transition-colors text-xs"
+                >
+                  {COMPANY_EMAIL}
+                </a>
+              </li>
+            </ul>
+
+            {/* Social icons */}
+            <div className="flex items-center gap-3">
               <a
-                href="mailto:viviztechnologies@gmail.com"
+                href={`mailto:${COMPANY_EMAIL}`}
                 className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-[#64748B] hover:text-[#00D4FF] hover:bg-[#00D4FF]/10 transition-colors"
                 aria-label="Email"
               >
@@ -51,7 +90,7 @@ export default function Footer() {
               <a
                 href="https://twitter.com/viviztechnologies"
                 className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-[#64748B] hover:text-[#00D4FF] hover:bg-[#00D4FF]/10 transition-colors"
-                aria-label="Twitter"
+                aria-label="Twitter / X"
               >
                 <X size={16} />
               </a>
@@ -72,7 +111,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Links */}
+          {/* Nav links */}
           {Object.entries(footerLinks).map(([section, links]) => (
             <div key={section}>
               <h4 className="text-sm font-semibold text-white mb-4 tracking-wide">

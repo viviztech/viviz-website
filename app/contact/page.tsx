@@ -1,9 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Link2, X, GitFork, Send, CheckCircle, MapPin, Clock } from "lucide-react";
+import { Mail, Link2, X, GitFork, Send, CheckCircle, MapPin, Clock, Phone } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
-import { BASE_URL, COMPANY_EMAIL } from "@/lib/config";
+import {
+  BASE_URL,
+  COMPANY_EMAIL,
+  COMPANY_PHONE_1,
+  COMPANY_PHONE_2,
+  COMPANY_ADDRESS,
+} from "@/lib/config";
 
 const contactSchema = {
   "@context": "https://schema.org",
@@ -16,14 +22,35 @@ const contactSchema = {
     "@type": "Organization",
     name: "Viviz Technologies",
     email: COMPANY_EMAIL,
-    url: BASE_URL,
-    contactPoint: {
-      "@type": "ContactPoint",
-      email: COMPANY_EMAIL,
-      contactType: "customer support",
-      availableLanguage: "English",
-      contactOption: "TollFree",
+    telephone: COMPANY_PHONE_1,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "No 47, 1st Floor, Sengunthapuram 3rd Cross Corner",
+      addressLocality: "Karur",
+      postalCode: "639002",
+      addressCountry: "IN",
     },
+    url: BASE_URL,
+    contactPoint: [
+      {
+        "@type": "ContactPoint",
+        telephone: COMPANY_PHONE_1,
+        contactType: "customer support",
+        availableLanguage: "English",
+      },
+      {
+        "@type": "ContactPoint",
+        telephone: COMPANY_PHONE_2,
+        contactType: "sales",
+        availableLanguage: "English",
+      },
+      {
+        "@type": "ContactPoint",
+        email: COMPANY_EMAIL,
+        contactType: "customer support",
+        availableLanguage: "English",
+      },
+    ],
   },
 };
 
@@ -36,7 +63,7 @@ const contactFaqSchema = {
       name: "How do I contact Viviz Technologies?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: `You can reach Viviz Technologies by email at ${COMPANY_EMAIL} or by filling out the contact form at ${BASE_URL}/contact. We reply within one business day.`,
+        text: `You can reach Viviz Technologies by email at ${COMPANY_EMAIL}, by phone at ${COMPANY_PHONE_1} or ${COMPANY_PHONE_2}, or by filling out the contact form at ${BASE_URL}/contact. We reply within one business day.`,
       },
     },
     {
@@ -151,25 +178,41 @@ export default function ContactPage() {
                     <div>
                       <div className="text-xs text-[#64748B] mb-0.5">Email</div>
                       <a
-                        href="mailto:viviztechnologies@gmail.com"
+                        href={`mailto:${COMPANY_EMAIL}`}
                         className="text-sm text-white hover:text-[#00D4FF] transition-colors"
                       >
-                        viviztechnologies@gmail.com
+                        {COMPANY_EMAIL}
                       </a>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <div className="w-9 h-9 rounded-xl bg-[#8B5CF6]/10 flex items-center justify-center shrink-0">
-                      <MapPin size={16} className="text-[#8B5CF6]" />
+                      <Phone size={16} className="text-[#8B5CF6]" />
                     </div>
                     <div>
-                      <div className="text-xs text-[#64748B] mb-0.5">Location</div>
-                      <span className="text-sm text-white">Remote · Worldwide</span>
+                      <div className="text-xs text-[#64748B] mb-0.5">Phone</div>
+                      <div className="flex flex-col gap-0.5">
+                        <a href={`tel:${COMPANY_PHONE_1}`} className="text-sm text-white hover:text-[#00D4FF] transition-colors">
+                          {COMPANY_PHONE_1}
+                        </a>
+                        <a href={`tel:${COMPANY_PHONE_2}`} className="text-sm text-white hover:text-[#00D4FF] transition-colors">
+                          {COMPANY_PHONE_2}
+                        </a>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <div className="w-9 h-9 rounded-xl bg-[#10D9A0]/10 flex items-center justify-center shrink-0">
-                      <Clock size={16} className="text-[#10D9A0]" />
+                      <MapPin size={16} className="text-[#10D9A0]" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-[#64748B] mb-0.5">Address</div>
+                      <span className="text-sm text-white leading-relaxed">{COMPANY_ADDRESS}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center shrink-0">
+                      <Clock size={16} className="text-[#F59E0B]" />
                     </div>
                     <div>
                       <div className="text-xs text-[#64748B] mb-0.5">Response Time</div>
@@ -181,7 +224,7 @@ export default function ContactPage() {
                 {/* Social links */}
                 <div className="flex gap-3 mt-6 pt-6 border-t border-white/5">
                   <a
-                    href="mailto:viviztechnologies@gmail.com"
+                    href={`mailto:${COMPANY_EMAIL}`}
                     className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-[#64748B] hover:text-[#00D4FF] hover:bg-[#00D4FF]/10 transition-colors"
                     aria-label="Email"
                   >
