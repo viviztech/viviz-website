@@ -111,7 +111,7 @@ const milestones = [
 
 export default function AboutPage() {
   return (
-    <div className="pt-16">
+    <div>
       <JsonLd data={aboutSchema} />
       {/* Hero */}
       <section className="relative py-24 overflow-hidden">

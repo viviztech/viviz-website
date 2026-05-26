@@ -241,7 +241,7 @@ function Palette2({ size, color }: { size?: number; color?: string }) {
 
 export default function ProductsPage() {
   return (
-    <div className="pt-16">
+    <div>
       <JsonLd data={crmSchema} />
       <JsonLd data={productsFaqSchema} />
       {/* Hero */}

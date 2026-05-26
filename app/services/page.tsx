@@ -224,7 +224,7 @@ const services = [
 
 export default function ServicesPage() {
   return (
-    <div className="pt-16">
+    <div>
       <JsonLd data={servicesFaqSchema} />
       {/* Hero */}
       <section className="relative py-24 overflow-hidden">

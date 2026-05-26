@@ -108,13 +108,13 @@ export default function HomePage() {
       </div>
 
       {/* Hero — asymmetric two-column */}
-      <section className="relative pt-20 pb-16 overflow-hidden">
+      <section className="relative py-16 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full bg-[#8B5CF6]/5 blur-[120px]" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[calc(100vh-10rem)]">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[calc(100vh-8rem)]">
             {/* Left */}
             <div>
               <p className="text-[#00D4FF] text-xs font-bold tracking-[0.2em] uppercase mb-5">
@@ -167,8 +167,8 @@ export default function HomePage() {
                 </div>
                 {/* Terminal body */}
                 <div className="p-5 font-mono text-sm space-y-2">
-                  {terminalLines.map((line, i) => (
-                    <div key={i} className="flex items-start gap-2">
+                  {terminalLines.map((line) => (
+                    <div key={line.text} className="flex items-start gap-2">
                       {line.type === "cmd" && (
                         <span className="text-[#F8FAFC] whitespace-nowrap">{line.text}</span>
                       )}
