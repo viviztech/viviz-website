@@ -8,7 +8,6 @@ import {
   Users,
   Megaphone,
   BarChart3,
-  Brain,
   Building2,
   Plug,
   CheckCircle,
@@ -18,11 +17,85 @@ import {
   Shield,
   Clock,
 } from "lucide-react";
+import JsonLd from "@/components/JsonLd";
+import { BASE_URL } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "Products — Viviz Technologies",
+  title: "Viviz CRM — AI Business Operating System for SMBs",
   description:
-    "Viviz CRM: the AI-powered Business Operating System for SMBs. One platform for brand, website, CRM, marketing, and autonomous AI operations.",
+    "Viviz CRM is an AI-powered Business Operating System. Sign up, describe your business, and the platform builds your brand, website, CRM, and marketing. Pricing from $29/month.",
+  alternates: { canonical: `${BASE_URL}/products` },
+  openGraph: {
+    title: "Viviz CRM — AI Business Operating System for SMBs",
+    description:
+      "One platform with 10 modules and 10 AI agents. Replaces brand tools, website builders, CRM, email marketing, and more. From $29/month.",
+    url: `${BASE_URL}/products`,
+  },
+};
+
+const crmSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Viviz CRM",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: `${BASE_URL}/products`,
+  description:
+    "Viviz CRM is an AI-powered Business Operating System for small and medium businesses. It includes 10 platform modules, 10 autonomous AI agents, a data science layer with lead scoring and churn prediction, and marketing automation across email, SMS, and WhatsApp.",
+  offers: [
+    { "@type": "Offer", name: "Starter", price: "29", priceCurrency: "USD", description: "5 modules, 2 AI agents, 1,000 contacts" },
+    { "@type": "Offer", name: "Growth", price: "79", priceCurrency: "USD", description: "All 10 modules, 5 AI agents, 10,000 contacts" },
+    { "@type": "Offer", name: "Pro", price: "199", priceCurrency: "USD", description: "All 10 modules, all 10 AI agents, unlimited contacts" },
+    { "@type": "Offer", name: "Agency", price: "499", priceCurrency: "USD", description: "Multi-tenant white-label, unlimited workspaces" },
+  ],
+  publisher: { "@type": "Organization", name: "Viviz Technologies", url: BASE_URL },
+};
+
+const productsFaqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is Viviz CRM?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Viviz CRM is an AI-powered Business Operating System for small and medium businesses. A business owner signs up, describes their idea, and the platform automatically builds their brand, website, CRM, and marketing automation. It includes 10 platform modules and 10 autonomous AI agents that work 24/7.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How much does Viviz CRM cost?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Viviz CRM is available in four plans: Starter at $29/month (5 modules, 2 AI agents, 1,000 contacts), Growth at $79/month (all 10 modules, 5 AI agents, 10,000 contacts), Pro at $199/month (all modules and agents, unlimited contacts), and Agency at $499/month (multi-tenant white-label). All plans include a free trial.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What are the 10 platform modules in Viviz CRM?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "The 10 modules are: Business Setup Wizard, Brand Studio, Website Builder, Social Media Suite, CRM & Sales Pipeline, Marketing Automation, Data Science Layer, AI Agents Command Center, Business Operations, and Integrations Hub (30+ integrations).",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What AI agents are included in Viviz CRM?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Viviz CRM includes 10 autonomous AI agents: Lead Scout, Outreach Agent, Nurture Agent, Onboarding Agent, Support Agent, Content Creator, Ad Manager, Data Analyst, Invoice Agent, and Growth Advisor. Each agent runs continuously and handles specific business workflows.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "When will Viviz CRM launch publicly?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Viviz CRM is currently in active development across an 8-phase, 16-month build plan. The public launch is targeted for 2027. Early access is available through the waitlist at viviztechnologies.com/contact.",
+      },
+    },
+  ],
 };
 
 const modules = [
@@ -169,6 +242,8 @@ function Palette2({ size, color }: { size?: number; color?: string }) {
 export default function ProductsPage() {
   return (
     <div className="pt-16">
+      <JsonLd data={crmSchema} />
+      <JsonLd data={productsFaqSchema} />
       {/* Hero */}
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
@@ -410,23 +485,67 @@ export default function ProductsPage() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <section className="py-20 border-t border-white/5">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-10">
+            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#64748B] mb-3">
+              Common questions
+            </p>
+            <h2 className="text-3xl font-bold text-white">Viviz CRM FAQ</h2>
+          </div>
+          <dl className="space-y-6">
+            {[
+              {
+                q: "What is Viviz CRM?",
+                a: "An AI-powered Business Operating System for SMBs. Sign up, describe your business, and the platform builds your brand, website, CRM, and marketing automation automatically. It includes 10 platform modules and 10 autonomous AI agents running 24/7.",
+              },
+              {
+                q: "How much does Viviz CRM cost?",
+                a: "Four plans: Starter ($29/month), Growth ($79/month), Pro ($199/month), Agency ($499/month). No per-seat fees. All plans include a free trial. Growth is the most popular — it includes all 10 modules and 5 AI agents.",
+              },
+              {
+                q: "What are the 10 platform modules?",
+                a: "Business Setup Wizard, Brand Studio, Website Builder, Social Media Suite, CRM & Sales Pipeline, Marketing Automation, Data Science Layer, AI Agents Command Center, Business Operations, and Integrations Hub (30+ integrations including Stripe, Slack, Google Workspace, Meta, and Shopify).",
+              },
+              {
+                q: "What AI agents are included?",
+                a: "Lead Scout, Outreach Agent, Nurture Agent, Onboarding Agent, Support Agent, Content Creator, Ad Manager, Data Analyst, Invoice Agent, and Growth Advisor. Each is specialized, runs continuously, and escalates to humans when needed.",
+              },
+              {
+                q: "When does Viviz CRM launch publicly?",
+                a: "Currently in active development across an 8-phase, 16-month build plan. Public launch is targeted for 2027. Early access is available through the waitlist — join via the contact page.",
+              },
+            ].map(({ q, a }) => (
+              <div key={q} className="border-b border-white/5 pb-6">
+                <dt className="text-sm font-semibold text-white mb-2">{q}</dt>
+                <dd className="text-sm text-[#64748B] leading-relaxed">{a}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
       {/* CTA */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Ready to Put Your Business on{" "}
-            <span className="text-[#00D4FF]">Autopilot?</span>
-          </h2>
-          <p className="text-[#64748B] text-lg mb-8 max-w-xl mx-auto">
-            Join the waitlist for Viviz CRM early access and be the first to experience
-            a business that runs itself.
-          </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-[#00D4FF] to-[#8B5CF6] text-white font-semibold hover:opacity-90 transition-opacity"
-          >
-            Request Early Access <ArrowRight size={16} />
-          </Link>
+      <section className="pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="border border-white/8 rounded-2xl p-10 bg-[#0F1929]">
+            <div className="max-w-xl">
+              <h2 className="text-2xl font-bold text-white mb-3">
+                Join the early access waitlist.
+              </h2>
+              <p className="text-[#64748B] mb-6">
+                We're onboarding the first businesses onto Viviz CRM. Tell us about
+                your business and we'll reach out when your spot is ready.
+              </p>
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#00D4FF] text-[#0B1120] font-semibold text-sm hover:bg-[#00BFEA] transition-colors"
+              >
+                Request early access <ArrowRight size={15} />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
     </div>

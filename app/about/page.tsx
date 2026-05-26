@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  Zap,
   Brain,
   Target,
   Heart,
@@ -12,11 +11,47 @@ import {
   Globe,
   Code2,
 } from "lucide-react";
+import JsonLd from "@/components/JsonLd";
+import { BASE_URL, COMPANY_NAME, COMPANY_EMAIL, COMPANY_FOUNDED } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "About — Viviz Technologies",
+  title: "About Viviz Technologies — AI Software Company Founded 2024",
   description:
-    "Viviz Technologies is an AI software company building intelligent systems that help businesses operate smarter, grow faster, and compete at scale.",
+    "Viviz Technologies is an AI software company founded in 2024. We build intelligent CRM, automation, and data science products that make enterprise-grade AI accessible to small and medium businesses.",
+  alternates: { canonical: `${BASE_URL}/about` },
+  openGraph: {
+    title: "About Viviz Technologies — AI Software Company",
+    description:
+      "Founded 2024. Building Viviz CRM and AI-powered software services. Mission: make intelligent business tools accessible to every SMB.",
+    url: `${BASE_URL}/about`,
+  },
+};
+
+const aboutSchema = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  url: `${BASE_URL}/about`,
+  name: `About ${COMPANY_NAME}`,
+  description:
+    "Viviz Technologies is an AI software company founded in 2024. We build Viviz CRM and offer AI agent development, data science, marketing automation, and custom SaaS services.",
+  mainEntity: {
+    "@type": "Organization",
+    "@id": `${BASE_URL}/#organization`,
+    name: COMPANY_NAME,
+    url: BASE_URL,
+    email: COMPANY_EMAIL,
+    foundingDate: COMPANY_FOUNDED,
+    description:
+      "AI software company building intelligent CRM, automation, and data science products for small and medium businesses.",
+    knowsAbout: [
+      "Artificial Intelligence",
+      "CRM Software",
+      "Marketing Automation",
+      "Data Science",
+      "Machine Learning",
+      "SaaS Development",
+    ],
+  },
 };
 
 const values = [
@@ -77,6 +112,7 @@ const milestones = [
 export default function AboutPage() {
   return (
     <div className="pt-16">
+      <JsonLd data={aboutSchema} />
       {/* Hero */}
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">

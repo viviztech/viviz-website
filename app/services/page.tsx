@@ -12,11 +12,67 @@ import {
   ArrowRight,
   CheckCircle,
 } from "lucide-react";
+import JsonLd from "@/components/JsonLd";
+import { BASE_URL } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "Services — Viviz Technologies",
+  title: "Services — AI Agent Development, Data Science & More",
   description:
-    "AI Agent development, data science, marketing automation, SaaS development, and more — every service powered by intelligence.",
+    "Viviz Technologies offers AI agent development, data science pipelines, marketing automation, custom SaaS development, business intelligence, and AI strategy consulting for SMBs.",
+  alternates: { canonical: `${BASE_URL}/services` },
+  openGraph: {
+    title: "Services — Viviz Technologies",
+    description:
+      "Eight intelligence-first services: AI agents, data science, marketing automation, SaaS development, and more.",
+    url: `${BASE_URL}/services`,
+  },
+};
+
+const servicesFaqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What AI services does Viviz Technologies offer?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Viviz Technologies offers eight AI-powered services: Viviz CRM (AI business operating system), AI Agent Development, Data Science & Predictive Analytics, Marketing Automation, Brand & Digital Presence, Custom SaaS Development, Business Intelligence & Dashboards, and AI Strategy & Consulting.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How does Viviz Technologies build AI agents?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Viviz Technologies builds custom AI agents using Claude API by Anthropic, LangGraph for agent orchestration, and LangChain for tool integration. Agents are designed to handle specific workflows — lead qualification, customer onboarding, support, content creation — and integrate with your existing CRM and tools.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What data science services does Viviz offer?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Viviz Technologies offers lead scoring models (94% accuracy), churn prediction (30-day early warning), customer lifetime value modeling, revenue forecasting (±8% error), and RFM segmentation. Models are built with scikit-learn, XGBoost, and Prophet and deployed as production services.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can Viviz Technologies build a custom SaaS product?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Viviz Technologies designs and builds full-stack SaaS products using Next.js 15, TypeScript, Python FastAPI, PostgreSQL, Redis, and AWS. This includes product architecture, database design, API development, frontend engineering, Stripe billing, and CI/CD deployment pipelines.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How long does it take to build an AI agent?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "A focused single-purpose AI agent (lead qualification, customer support, data enrichment) typically takes 2–4 weeks from scoping to deployment. Multi-agent systems or agents requiring custom integrations take 4–8 weeks. Timeline depends on data availability, workflow complexity, and integration requirements.",
+      },
+    },
+  ],
 };
 
 const services = [
@@ -169,6 +225,7 @@ const services = [
 export default function ServicesPage() {
   return (
     <div className="pt-16">
+      <JsonLd data={servicesFaqSchema} />
       {/* Hero */}
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
@@ -259,26 +316,64 @@ export default function ServicesPage() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <section className="py-20 border-t border-white/5">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-10">
+            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#64748B] mb-3">
+              Common questions
+            </p>
+            <h2 className="text-3xl font-bold text-white">Services FAQ</h2>
+          </div>
+          <dl className="space-y-6">
+            {[
+              {
+                q: "What AI services does Viviz Technologies offer?",
+                a: "Eight services: Viviz CRM (AI business operating system), AI Agent Development, Data Science & Predictive Analytics, Marketing Automation, Brand & Digital Presence, Custom SaaS Development, Business Intelligence & Dashboards, and AI Strategy & Consulting. All are available as standalone engagements.",
+              },
+              {
+                q: "How does Viviz build AI agents?",
+                a: "Using Claude API by Anthropic, LangGraph for orchestration, and LangChain for tool integration. Agents handle specific workflows — lead qualification, customer onboarding, support — and integrate with your existing tools. Typical build time is 2–4 weeks for a single-purpose agent.",
+              },
+              {
+                q: "What data science services are available?",
+                a: "Lead scoring (94% accuracy), churn prediction with 30-day early warning, customer lifetime value modeling, revenue forecasting (±8% error), and RFM segmentation. Built with scikit-learn, XGBoost, and Prophet — deployed as production services, not just notebooks.",
+              },
+              {
+                q: "Can Viviz build a full SaaS product from scratch?",
+                a: "Yes. We handle the full stack: architecture, database design, API development (Python FastAPI), frontend (Next.js + TypeScript), Stripe billing, and CI/CD. We've built multi-tenant SaaS with complex auth, real-time features, and data-heavy backends.",
+              },
+              {
+                q: "How long does a typical engagement take?",
+                a: "AI agents: 2–4 weeks. Data science pipelines: 3–6 weeks. Marketing automation systems: 2–4 weeks. Custom SaaS products: 3–6 months for an MVP. AI strategy engagements: 2–4 weeks for a full roadmap and use-case prioritization.",
+              },
+            ].map(({ q, a }) => (
+              <div key={q} className="border-b border-white/5 pb-6">
+                <dt className="text-sm font-semibold text-white mb-2">{q}</dt>
+                <dd className="text-sm text-[#64748B] leading-relaxed">{a}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
       {/* CTA */}
-      <section className="pb-24">
+      <section className="pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0F1929] to-[#111E30] p-12 text-center">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-[#8B5CF6]/5 blur-[80px]" />
-            </div>
-            <div className="relative">
-              <h2 className="text-3xl font-bold text-white mb-4">
-                Not Sure Which Service Fits?
+          <div className="border border-white/8 rounded-2xl p-10 bg-[#0F1929]">
+            <div className="max-w-xl">
+              <h2 className="text-2xl font-bold text-white mb-3">
+                Not sure which service fits?
               </h2>
-              <p className="text-[#64748B] text-lg mb-8 max-w-xl mx-auto">
-                Tell us your challenge. We'll recommend the right combination of services
-                and give you a clear implementation plan.
+              <p className="text-[#64748B] mb-6">
+                Describe your challenge. We'll recommend the right combination of services
+                and give you a clear implementation plan — usually within 24 hours.
               </p>
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-[#00D4FF] to-[#8B5CF6] text-white font-semibold hover:opacity-90 transition-opacity"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#00D4FF] text-[#0B1120] font-semibold text-sm hover:bg-[#00BFEA] transition-colors"
               >
-                Get a Free Consultation <ArrowRight size={16} />
+                Get a free consultation <ArrowRight size={15} />
               </Link>
             </div>
           </div>

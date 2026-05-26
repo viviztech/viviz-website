@@ -2,6 +2,61 @@
 
 import { useState } from "react";
 import { Mail, Link2, X, GitFork, Send, CheckCircle, MapPin, Clock } from "lucide-react";
+import JsonLd from "@/components/JsonLd";
+import { BASE_URL, COMPANY_EMAIL } from "@/lib/config";
+
+const contactSchema = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  url: `${BASE_URL}/contact`,
+  name: "Contact Viviz Technologies",
+  description:
+    "Contact Viviz Technologies to discuss AI agent development, Viviz CRM early access, custom SaaS projects, or any other enquiry.",
+  mainEntity: {
+    "@type": "Organization",
+    name: "Viviz Technologies",
+    email: COMPANY_EMAIL,
+    url: BASE_URL,
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: COMPANY_EMAIL,
+      contactType: "customer support",
+      availableLanguage: "English",
+      contactOption: "TollFree",
+    },
+  },
+};
+
+const contactFaqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "How do I contact Viviz Technologies?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: `You can reach Viviz Technologies by email at ${COMPANY_EMAIL} or by filling out the contact form at ${BASE_URL}/contact. We reply within one business day.`,
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How quickly does Viviz Technologies respond?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Viviz Technologies typically responds within one business day. After initial contact, we schedule a 30-minute discovery call and follow up with a clear proposal within a few days.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What information should I include when contacting Viviz?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Include your name, email, company name (if applicable), the service you're interested in, and a brief description of your challenge or project. The more context you provide, the more specific our initial response will be.",
+      },
+    },
+  ],
+};
 
 const services = [
   "Viviz CRM (Early Access)",
@@ -57,6 +112,8 @@ export default function ContactPage() {
 
   return (
     <div className="pt-16">
+      <JsonLd data={contactSchema} />
+      <JsonLd data={contactFaqSchema} />
       {/* Hero */}
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
