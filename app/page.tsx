@@ -238,7 +238,7 @@ export default function HomePage() {
               </div>
 
               {/* Floating badge */}
-              <div className="absolute top-[140px] right-[80px] bg-[#111E30] border border-[#00D4FF]/20 rounded-xl px-4 py-2.5 shadow-xl">
+              <div className="absolute top-48.75 left-70 bg-[#111E30] border border-[#00D4FF]/20 rounded-xl px-4 py-2.5 shadow-xl">
                 <div className="text-[10px] text-[#64748B]">Projects Delivered</div>
                 <div className="text-xl font-bold text-[#00D4FF]">50+</div>
               </div>

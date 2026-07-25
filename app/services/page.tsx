@@ -242,10 +242,16 @@ export default function ServicesPage() {
               <br />
               <span className="text-[#8B5CF6]">Every discipline covered.</span>
             </h1>
-            <p className="text-[#64748B] text-xl leading-relaxed">
+            <p className="text-[#64748B] text-xl leading-relaxed mb-8">
               From the first wireframe to the production server — we cover every layer
               of software development so you don't have to co-ordinate multiple vendors.
             </p>
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-[#8B5CF6] text-white font-semibold text-sm hover:bg-[#7C4FE8] transition-colors"
+            >
+              Start a Project <ArrowRight size={15} />
+            </Link>
           </div>
         </div>
       </section>

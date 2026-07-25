@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import { BASE_URL } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Viviz Commerce — WhatsApp Sales Platform",
   description:
     "Turn your WhatsApp number into a 24/7 sales engine. AI bot, online storefront, order management, and CRM — all in one platform for small businesses in India.",
+  alternates: { canonical: `${BASE_URL}/commerce` },
   openGraph: {
     title: "Viviz Commerce — Turn WhatsApp into Your Sales Engine",
     description:
       "24/7 AI WhatsApp bot, branded storefront, and full CRM for small businesses in India.",
+    url: `${BASE_URL}/commerce`,
   },
 };
 
