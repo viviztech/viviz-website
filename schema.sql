@@ -22,6 +22,6 @@ CREATE TABLE IF NOT EXISTS invoices (
 );
 
 -- Invoice numbers are derived from `id` at read time (e.g. VZ-INV-0007), not
--- stored. Under GST rules, corrections should be issued as new invoices or
--- credit/debit notes, not edits to an existing row -- this table intentionally
--- has no update path for financial fields.
+-- stored. Note: under GST rules, corrections should technically be issued as
+-- credit/debit notes rather than silent edits to an already-issued invoice --
+-- editing here is unrestricted (any invoice, any time) by explicit choice.

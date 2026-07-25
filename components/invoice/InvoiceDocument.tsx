@@ -3,7 +3,7 @@ import {
   COMPANY_NAME,
   COMPANY_EMAIL,
   COMPANY_PHONE_1,
-  COMPANY_ADDRESS,
+  INVOICE_COMPANY_ADDRESS,
   COMPANY_GSTIN,
 } from "@/lib/config";
 import { gstStateName } from "@/lib/gst";
@@ -114,7 +114,7 @@ export default function InvoiceDocument({ invoice }: { invoice: InvoiceRecord })
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.companyName}>{COMPANY_NAME}</Text>
-            <Text style={styles.muted}>{COMPANY_ADDRESS}</Text>
+            <Text style={styles.muted}>{INVOICE_COMPANY_ADDRESS}</Text>
             <Text style={styles.muted}>GSTIN: {COMPANY_GSTIN}</Text>
             <Text style={styles.muted}>{COMPANY_EMAIL} | {COMPANY_PHONE_1}</Text>
           </View>

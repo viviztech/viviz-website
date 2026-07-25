@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, FileDown, Loader2 } from "lucide-react";
+import { Plus, Trash2, FileDown, Loader2, Pencil, X } from "lucide-react";
 import { GST_STATES } from "@/lib/gst";
 import { calculateTotals, type InvoiceLineItem } from "@/lib/invoice-calc";
 import { fromPaise } from "@/lib/money";
@@ -30,6 +30,7 @@ export default function InvoiceManager({
   const [invoices, setInvoices] = useState(initialInvoices);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const [clientName, setClientName] = useState("");
   const [clientAddress, setClientAddress] = useState("");
@@ -64,6 +65,7 @@ export default function InvoiceManager({
   }
 
   function resetForm() {
+    setEditingId(null);
     setClientName("");
     setClientAddress("");
     setClientGstin("");
@@ -75,13 +77,28 @@ export default function InvoiceManager({
     setLineItems([{ ...emptyLineItem }]);
   }
 
+  function startEdit(inv: InvoiceRecord) {
+    setEditingId(inv.id);
+    setError("");
+    setClientName(inv.clientName);
+    setClientAddress(inv.clientAddress);
+    setClientGstin(inv.clientGstin ?? "");
+    setClientStateCode(inv.clientStateCode);
+    setInvoiceDate(inv.invoiceDate);
+    setDueDate(inv.dueDate ?? "");
+    setGstRate(inv.gstRate);
+    setNotes(inv.notes ?? "");
+    setLineItems(inv.lineItems.map((item) => ({ ...item, hsnSac: item.hsnSac ?? "" })));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/invoices", {
-        method: "POST",
+      const res = await fetch(editingId ? `/api/invoices/${editingId}` : "/api/invoices", {
+        method: editingId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           clientName,
@@ -99,10 +116,14 @@ export default function InvoiceManager({
       if (!res.ok) {
         throw new Error(data.error || "Something went wrong.");
       }
-      setInvoices((prev) => [data.invoice, ...prev]);
+      if (editingId) {
+        setInvoices((prev) => prev.map((inv) => (inv.id === editingId ? data.invoice : inv)));
+      } else {
+        setInvoices((prev) => [data.invoice, ...prev]);
+      }
       resetForm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create invoice.");
+      setError(err instanceof Error ? err.message : "Failed to save invoice.");
     } finally {
       setLoading(false);
     }
@@ -115,7 +136,22 @@ export default function InvoiceManager({
         onSubmit={handleSubmit}
         className="lg:col-span-3 p-8 rounded-2xl border border-white/5 bg-[#0F1929] space-y-6"
       >
-        <h2 className="text-lg font-bold text-white">New Invoice</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">
+            {editingId
+              ? `Edit Invoice — ${invoices.find((inv) => inv.id === editingId)?.invoiceNumber ?? ""}`
+              : "New Invoice"}
+          </h2>
+          {editingId && (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="flex items-center gap-1.5 text-xs font-semibold text-[#64748B] hover:text-white transition-colors"
+            >
+              <X size={14} /> Cancel edit
+            </button>
+          )}
+        </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
@@ -312,7 +348,7 @@ export default function InvoiceManager({
           {loading ? (
             <Loader2 size={16} className="animate-spin" />
           ) : (
-            <span>Create Invoice</span>
+            <span>{editingId ? "Update Invoice" : "Create Invoice"}</span>
           )}
         </button>
       </form>
@@ -325,10 +361,11 @@ export default function InvoiceManager({
         ) : (
           <div className="space-y-3">
             {invoices.map((inv) => (
-              <a
+              <div
                 key={inv.id}
-                href={`/api/invoices/${inv.id}/pdf`}
-                className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/8 transition-colors group"
+                className={`flex items-center justify-between p-3 rounded-xl transition-colors ${
+                  inv.id === editingId ? "bg-[#00D4FF]/10 border border-[#00D4FF]/30" : "bg-white/5"
+                }`}
               >
                 <div>
                   <div className="text-sm text-white font-semibold">{inv.invoiceNumber}</div>
@@ -336,11 +373,25 @@ export default function InvoiceManager({
                     {inv.clientName} · {inv.invoiceDate}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-white">{formatCurrency(inv.total)}</span>
-                  <FileDown size={16} className="text-[#64748B] group-hover:text-[#00D4FF] transition-colors" />
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-white mr-2">{formatCurrency(inv.total)}</span>
+                  <button
+                    type="button"
+                    onClick={() => startEdit(inv)}
+                    className="p-2 rounded-lg text-[#64748B] hover:text-[#00D4FF] hover:bg-white/8 transition-colors"
+                    aria-label={`Edit ${inv.invoiceNumber}`}
+                  >
+                    <Pencil size={15} />
+                  </button>
+                  <a
+                    href={`/api/invoices/${inv.id}/pdf`}
+                    className="p-2 rounded-lg text-[#64748B] hover:text-[#00D4FF] hover:bg-white/8 transition-colors"
+                    aria-label={`Download ${inv.invoiceNumber}`}
+                  >
+                    <FileDown size={15} />
+                  </a>
                 </div>
-              </a>
+              </div>
             ))}
           </div>
         )}
