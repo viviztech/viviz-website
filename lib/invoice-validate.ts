@@ -5,6 +5,7 @@ export function parseInvoicePayload(
   body: any
 ): { data: CreateInvoiceInput } | { error: string } {
   const {
+    documentType,
     clientName,
     clientAddress,
     clientGstin,
@@ -28,6 +29,10 @@ export function parseInvoicePayload(
     return { error: "Missing required invoice fields." };
   }
 
+  if (documentType !== undefined && documentType !== "invoice" && documentType !== "proforma") {
+    return { error: "Invalid document type." };
+  }
+
   const validLineItems: InvoiceLineItem[] = lineItems.map((item) => ({
     description: String(item.description ?? ""),
     hsnSac: item.hsnSac ? String(item.hsnSac) : undefined,
@@ -45,6 +50,7 @@ export function parseInvoicePayload(
 
   return {
     data: {
+      documentType: documentType === "proforma" ? "proforma" : "invoice",
       clientName,
       clientAddress,
       clientGstin: clientGstin || null,

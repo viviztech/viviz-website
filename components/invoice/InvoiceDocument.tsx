@@ -119,10 +119,18 @@ export default function InvoiceDocument({ invoice }: { invoice: InvoiceRecord })
             <Text style={styles.muted}>{COMPANY_EMAIL} | {COMPANY_PHONE_1}</Text>
           </View>
           <View>
-            <Text style={styles.invoiceTitle}>TAX INVOICE</Text>
+            <Text style={styles.invoiceTitle}>
+              {invoice.documentType === "proforma" ? "PROFORMA INVOICE" : "TAX INVOICE"}
+            </Text>
             <Text style={[styles.muted, { textAlign: "right", marginTop: 6 }]}>
               {invoice.invoiceNumber}
             </Text>
+            {invoice.documentType === "proforma" && (
+              <Text style={[styles.muted, { textAlign: "right", maxWidth: 220, marginTop: 6 }]}>
+                This is a Proforma Invoice — not a demand for payment and not valid for GST
+                input tax credit.
+              </Text>
+            )}
           </View>
         </View>
 

@@ -5,9 +5,13 @@ import { fromPaise } from "@/lib/money";
 
 export type { InvoiceLineItem };
 
+export type DocumentType = "invoice" | "proforma";
+
 export interface InvoiceRecord {
   id: number;
   invoiceNumber: string;
+  documentType: DocumentType;
+  convertedToInvoiceId: number | null;
   clientName: string;
   clientAddress: string;
   clientGstin: string | null;
@@ -26,6 +30,7 @@ export interface InvoiceRecord {
 }
 
 export interface CreateInvoiceInput {
+  documentType?: DocumentType;
   clientName: string;
   clientAddress: string;
   clientGstin?: string | null;
@@ -37,8 +42,9 @@ export interface CreateInvoiceInput {
   notes?: string | null;
 }
 
-export function formatInvoiceNumber(id: number): string {
-  return `VZ-INV-${String(id).padStart(4, "0")}`;
+export function formatInvoiceNumber(id: number, documentType: DocumentType = "invoice"): string {
+  const prefix = documentType === "proforma" ? "VZ-PF" : "VZ-INV";
+  return `${prefix}-${String(id).padStart(4, "0")}`;
 }
 
 // The Neon driver returns DATE/TIMESTAMPTZ columns as native Date objects,
@@ -58,7 +64,9 @@ function toIsoString(value: unknown): string {
 function mapRow(row: any): InvoiceRecord {
   return {
     id: row.id,
-    invoiceNumber: formatInvoiceNumber(row.id),
+    invoiceNumber: formatInvoiceNumber(row.id, row.document_type),
+    documentType: row.document_type,
+    convertedToInvoiceId: row.converted_to_invoice_id,
     clientName: row.client_name,
     clientAddress: row.client_address,
     clientGstin: row.client_gstin,
@@ -88,12 +96,13 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<InvoiceR
     INSERT INTO invoices (
       client_name, client_address, client_gstin, client_state_code,
       invoice_date, due_date, line_items, gst_rate,
-      subtotal, cgst, sgst, igst, total, notes
+      subtotal, cgst, sgst, igst, total, notes, document_type
     ) VALUES (
       ${input.clientName}, ${input.clientAddress}, ${input.clientGstin ?? null}, ${input.clientStateCode},
       ${input.invoiceDate}, ${input.dueDate ?? null}, ${JSON.stringify(input.lineItems)}::jsonb, ${input.gstRate},
       ${fromPaise(totals.subtotalPaise)}, ${fromPaise(totals.cgstPaise)}, ${fromPaise(totals.sgstPaise)},
-      ${fromPaise(totals.igstPaise)}, ${fromPaise(totals.totalPaise)}, ${input.notes ?? null}
+      ${fromPaise(totals.igstPaise)}, ${fromPaise(totals.totalPaise)}, ${input.notes ?? null},
+      ${input.documentType ?? "invoice"}
     )
     RETURNING *
   `;
@@ -141,4 +150,38 @@ export async function listInvoices(): Promise<InvoiceRecord[]> {
 export async function getInvoiceById(id: number): Promise<InvoiceRecord | null> {
   const rows = await getSql()`SELECT * FROM invoices WHERE id = ${id}`;
   return rows[0] ? mapRow(rows[0]) : null;
+}
+
+export async function convertProformaToInvoice(
+  id: number
+): Promise<{ invoice: InvoiceRecord } | { error: string }> {
+  const source = await getInvoiceById(id);
+  if (!source) {
+    return { error: "Proforma not found." };
+  }
+  if (source.documentType !== "proforma") {
+    return { error: "Only a proforma invoice can be converted." };
+  }
+  if (source.convertedToInvoiceId) {
+    return { error: "This proforma has already been converted." };
+  }
+
+  const invoice = await createInvoice({
+    documentType: "invoice",
+    clientName: source.clientName,
+    clientAddress: source.clientAddress,
+    clientGstin: source.clientGstin,
+    clientStateCode: source.clientStateCode,
+    invoiceDate: new Date().toISOString().slice(0, 10),
+    dueDate: source.dueDate,
+    lineItems: source.lineItems,
+    gstRate: source.gstRate,
+    notes: source.notes,
+  });
+
+  await getSql()`
+    UPDATE invoices SET converted_to_invoice_id = ${invoice.id} WHERE id = ${id}
+  `;
+
+  return { invoice };
 }

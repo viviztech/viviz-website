@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, FileDown, Loader2, Pencil, X } from "lucide-react";
+import { Plus, Trash2, FileDown, Loader2, Pencil, X, ArrowRightCircle } from "lucide-react";
 import { GST_STATES } from "@/lib/gst";
 import { calculateTotals, type InvoiceLineItem } from "@/lib/invoice-calc";
 import { fromPaise } from "@/lib/money";
 import { COMPANY_STATE_CODE } from "@/lib/config";
-import type { InvoiceRecord } from "@/lib/invoices";
+import type { DocumentType, InvoiceRecord } from "@/lib/invoices";
 
 const emptyLineItem: InvoiceLineItem = { description: "", hsnSac: "", quantity: 1, rate: 0 };
 
@@ -16,6 +16,11 @@ function todayIso(): string {
 
 function formatCurrency(amount: number): string {
   return `₹${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatInvoiceNumberFor(id: number, documentType: DocumentType): string {
+  const prefix = documentType === "proforma" ? "VZ-PF" : "VZ-INV";
+  return `${prefix}-${String(id).padStart(4, "0")}`;
 }
 
 const inputClass =
@@ -29,9 +34,11 @@ export default function InvoiceManager({
 }) {
   const [invoices, setInvoices] = useState(initialInvoices);
   const [loading, setLoading] = useState(false);
+  const [converting, setConverting] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
 
+  const [documentType, setDocumentType] = useState<DocumentType>("invoice");
   const [clientName, setClientName] = useState("");
   const [clientAddress, setClientAddress] = useState("");
   const [clientGstin, setClientGstin] = useState("");
@@ -66,6 +73,7 @@ export default function InvoiceManager({
 
   function resetForm() {
     setEditingId(null);
+    setDocumentType("invoice");
     setClientName("");
     setClientAddress("");
     setClientGstin("");
@@ -80,6 +88,7 @@ export default function InvoiceManager({
   function startEdit(inv: InvoiceRecord) {
     setEditingId(inv.id);
     setError("");
+    setDocumentType(inv.documentType);
     setClientName(inv.clientName);
     setClientAddress(inv.clientAddress);
     setClientGstin(inv.clientGstin ?? "");
@@ -101,6 +110,7 @@ export default function InvoiceManager({
         method: editingId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...(editingId ? {} : { documentType }),
           clientName,
           clientAddress,
           clientGstin: clientGstin || null,
@@ -129,6 +139,29 @@ export default function InvoiceManager({
     }
   }
 
+  async function handleConvert(id: number) {
+    setConverting(id);
+    setError("");
+    try {
+      const res = await fetch(`/api/invoices/${id}/convert`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to convert proforma.");
+      }
+      setInvoices((prev) => [
+        data.invoice,
+        ...prev.map((inv) =>
+          inv.id === id ? { ...inv, convertedToInvoiceId: data.invoice.id } : inv
+        ),
+      ]);
+      startEdit(data.invoice);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to convert proforma.");
+    } finally {
+      setConverting(null);
+    }
+  }
+
   return (
     <div className="grid lg:grid-cols-5 gap-8">
       {/* Form */}
@@ -139,8 +172,10 @@ export default function InvoiceManager({
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-white">
             {editingId
-              ? `Edit Invoice — ${invoices.find((inv) => inv.id === editingId)?.invoiceNumber ?? ""}`
-              : "New Invoice"}
+              ? `Edit ${documentType === "proforma" ? "Proforma" : "Invoice"} — ${
+                  invoices.find((inv) => inv.id === editingId)?.invoiceNumber ?? ""
+                }`
+              : `New ${documentType === "proforma" ? "Proforma" : "Invoice"}`}
           </h2>
           {editingId && (
             <button
@@ -152,6 +187,25 @@ export default function InvoiceManager({
             </button>
           )}
         </div>
+
+        {!editingId && (
+          <div className="flex rounded-xl bg-white/5 p-1 w-fit">
+            {(["invoice", "proforma"] as const).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setDocumentType(type)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
+                  documentType === type
+                    ? "bg-[#00D4FF]/15 text-[#00D4FF]"
+                    : "text-[#64748B] hover:text-white"
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
@@ -348,14 +402,16 @@ export default function InvoiceManager({
           {loading ? (
             <Loader2 size={16} className="animate-spin" />
           ) : (
-            <span>{editingId ? "Update Invoice" : "Create Invoice"}</span>
+            <span>
+              {editingId ? `Update ${documentType === "proforma" ? "Proforma" : "Invoice"}` : `Create ${documentType === "proforma" ? "Proforma" : "Invoice"}`}
+            </span>
           )}
         </button>
       </form>
 
-      {/* Past invoices */}
+      {/* Past documents */}
       <div className="lg:col-span-2 p-6 rounded-2xl border border-white/5 bg-[#0F1929] h-fit">
-        <h2 className="text-base font-bold text-white mb-6">Past Invoices</h2>
+        <h2 className="text-base font-bold text-white mb-6">Documents</h2>
         {invoices.length === 0 ? (
           <p className="text-sm text-[#64748B]">No invoices yet.</p>
         ) : (
@@ -368,13 +424,44 @@ export default function InvoiceManager({
                 }`}
               >
                 <div>
-                  <div className="text-sm text-white font-semibold">{inv.invoiceNumber}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-white font-semibold">{inv.invoiceNumber}</span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${
+                        inv.documentType === "proforma"
+                          ? "bg-amber-400/15 text-amber-400"
+                          : "bg-[#00D4FF]/15 text-[#00D4FF]"
+                      }`}
+                    >
+                      {inv.documentType}
+                    </span>
+                    {inv.convertedToInvoiceId && (
+                      <span className="text-[10px] text-[#64748B]">
+                        → {formatInvoiceNumberFor(inv.convertedToInvoiceId, "invoice")}
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-[#64748B]">
                     {inv.clientName} · {inv.invoiceDate}
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-white mr-2">{formatCurrency(inv.total)}</span>
+                  {inv.documentType === "proforma" && !inv.convertedToInvoiceId && (
+                    <button
+                      type="button"
+                      onClick={() => handleConvert(inv.id)}
+                      disabled={converting === inv.id}
+                      className="p-2 rounded-lg text-[#64748B] hover:text-[#00D4FF] hover:bg-white/8 transition-colors disabled:opacity-40"
+                      aria-label={`Convert ${inv.invoiceNumber} to invoice`}
+                    >
+                      {converting === inv.id ? (
+                        <Loader2 size={15} className="animate-spin" />
+                      ) : (
+                        <ArrowRightCircle size={15} />
+                      )}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => startEdit(inv)}
