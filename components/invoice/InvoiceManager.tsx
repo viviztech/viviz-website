@@ -35,6 +35,7 @@ export default function InvoiceManager({
   const [invoices, setInvoices] = useState(initialInvoices);
   const [loading, setLoading] = useState(false);
   const [converting, setConverting] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -136,6 +137,35 @@ export default function InvoiceManager({
       setError(err instanceof Error ? err.message : "Failed to save invoice.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDelete(inv: InvoiceRecord) {
+    if (!window.confirm(`Delete ${inv.invoiceNumber}? This cannot be undone.`)) {
+      return;
+    }
+    setDeleting(inv.id);
+    setError("");
+    try {
+      const res = await fetch(`/api/invoices/${inv.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete document.");
+      }
+      setInvoices((prev) =>
+        prev
+          .filter((i) => i.id !== inv.id)
+          .map((i) =>
+            i.convertedToInvoiceId === inv.id ? { ...i, convertedToInvoiceId: null } : i
+          )
+      );
+      if (editingId === inv.id) {
+        resetForm();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete document.");
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -477,6 +507,19 @@ export default function InvoiceManager({
                   >
                     <FileDown size={15} />
                   </a>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(inv)}
+                    disabled={deleting === inv.id}
+                    className="p-2 rounded-lg text-[#64748B] hover:text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-40"
+                    aria-label={`Delete ${inv.invoiceNumber}`}
+                  >
+                    {deleting === inv.id ? (
+                      <Loader2 size={15} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={15} />
+                    )}
+                  </button>
                 </div>
               </div>
             ))}

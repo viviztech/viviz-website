@@ -152,6 +152,18 @@ export async function getInvoiceById(id: number): Promise<InvoiceRecord | null> 
   return rows[0] ? mapRow(rows[0]) : null;
 }
 
+export async function deleteInvoice(id: number): Promise<boolean> {
+  const sql = getSql();
+
+  // Unlink any proforma that was converted into this invoice, so the FK on
+  // converted_to_invoice_id doesn't block deletion (the proforma just
+  // becomes convertible again).
+  await sql`UPDATE invoices SET converted_to_invoice_id = NULL WHERE converted_to_invoice_id = ${id}`;
+
+  const rows = await sql`DELETE FROM invoices WHERE id = ${id} RETURNING id`;
+  return rows.length > 0;
+}
+
 export async function convertProformaToInvoice(
   id: number
 ): Promise<{ invoice: InvoiceRecord } | { error: string }> {
