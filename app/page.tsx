@@ -423,7 +423,7 @@ export default function HomePage() {
                 { label: "Platform Modules", value: "10", color: "#00D4FF" },
                 { label: "AI Agents", value: "10", color: "#8B5CF6" },
                 { label: "Integrations", value: "30+", color: "#10D9A0" },
-                { label: "Starter Price", value: "$29/mo", color: "#F59E0B" },
+                { label: "Starter Price", value: "₹999/mo", color: "#F59E0B" },
               ].map(({ label, value, color }) => (
                 <div
                   key={label}

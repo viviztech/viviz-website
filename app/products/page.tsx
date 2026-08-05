@@ -23,12 +23,12 @@ import { BASE_URL } from "@/lib/config";
 export const metadata: Metadata = {
   title: "Viviz CRM — AI Business Operating System for SMBs",
   description:
-    "Viviz CRM is an AI-powered Business Operating System. Sign up, describe your business, and the platform builds your brand, website, CRM, and marketing. Pricing from $29/month.",
+    "Viviz CRM is an AI-powered Business Operating System. Sign up, describe your business, and the platform builds your brand, website, CRM, and marketing. Pricing from ₹999/month.",
   alternates: { canonical: `${BASE_URL}/products` },
   openGraph: {
     title: "Viviz CRM — AI Business Operating System for SMBs",
     description:
-      "One platform with 10 modules and 10 AI agents. Replaces brand tools, website builders, CRM, email marketing, and more. From $29/month.",
+      "One platform with 10 modules and 10 AI agents. Replaces brand tools, website builders, CRM, email marketing, and more. From ₹999/month.",
     url: `${BASE_URL}/products`,
   },
 };
@@ -43,10 +43,10 @@ const crmSchema = {
   description:
     "Viviz CRM is an AI-powered Business Operating System for small and medium businesses. It includes 10 platform modules, 10 autonomous AI agents, a data science layer with lead scoring and churn prediction, and marketing automation across email, SMS, and WhatsApp.",
   offers: [
-    { "@type": "Offer", name: "Starter", price: "29", priceCurrency: "USD", description: "5 modules, 2 AI agents, 1,000 contacts" },
-    { "@type": "Offer", name: "Growth", price: "79", priceCurrency: "USD", description: "All 10 modules, 5 AI agents, 10,000 contacts" },
-    { "@type": "Offer", name: "Pro", price: "199", priceCurrency: "USD", description: "All 10 modules, all 10 AI agents, unlimited contacts" },
-    { "@type": "Offer", name: "Agency", price: "499", priceCurrency: "USD", description: "Multi-tenant white-label, unlimited workspaces" },
+    { "@type": "Offer", name: "Starter", price: "999", priceCurrency: "INR", description: "5 modules, 2 AI agents, 1,000 contacts" },
+    { "@type": "Offer", name: "Growth", price: "4999", priceCurrency: "INR", description: "All 10 modules, 5 AI agents, 10,000 contacts" },
+    { "@type": "Offer", name: "Pro", price: "9999", priceCurrency: "INR", description: "All 10 modules, all 10 AI agents, unlimited contacts" },
+    { "@type": "Offer", name: "Agency", priceCurrency: "INR", description: "Multi-tenant white-label, unlimited workspaces — contact sales for pricing" },
   ],
   publisher: { "@type": "Organization", name: "Viviz Technologies", url: BASE_URL },
 };
@@ -68,7 +68,7 @@ const productsFaqSchema = {
       name: "How much does Viviz CRM cost?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Viviz CRM is available in four plans: Starter at $29/month (5 modules, 2 AI agents, 1,000 contacts), Growth at $79/month (all 10 modules, 5 AI agents, 10,000 contacts), Pro at $199/month (all modules and agents, unlimited contacts), and Agency at $499/month (multi-tenant white-label). All plans include a free trial.",
+        text: "Viviz CRM is available in four plans: Starter at ₹999/month (5 modules, 2 AI agents, 1,000 contacts), Growth at ₹4,999/month (all 10 modules, 5 AI agents, 10,000 contacts), Pro at ₹9,999/month (all modules and agents, unlimited contacts), and Agency (multi-tenant white-label, contact sales for pricing). All plans include a free trial.",
       },
     },
     {
@@ -177,7 +177,7 @@ const agents = [
 const pricing = [
   {
     name: "Starter",
-    price: "$29",
+    price: "₹999",
     period: "/mo",
     desc: "For solopreneurs and new businesses",
     features: ["5 platform modules", "2 AI agents", "1,000 contacts", "Email automation", "Basic analytics"],
@@ -187,7 +187,7 @@ const pricing = [
   },
   {
     name: "Growth",
-    price: "$79",
+    price: "₹4,999",
     period: "/mo",
     desc: "For growing teams and SMBs",
     features: ["All 10 modules", "5 AI agents", "10,000 contacts", "Email + SMS + WhatsApp", "Data science layer", "Priority support"],
@@ -197,7 +197,7 @@ const pricing = [
   },
   {
     name: "Pro",
-    price: "$199",
+    price: "₹9,999",
     period: "/mo",
     desc: "For established businesses scaling fast",
     features: ["Everything in Growth", "All 10 AI agents", "Unlimited contacts", "Ad campaign management", "Custom integrations", "Dedicated onboarding"],
@@ -207,8 +207,8 @@ const pricing = [
   },
   {
     name: "Agency",
-    price: "$499",
-    period: "/mo",
+    price: "Contact Sales",
+    period: "",
     desc: "For agencies managing multiple clients",
     features: ["Multi-tenant white-label", "Unlimited workspaces", "API access", "Custom branding", "SLA support", "Team permissions"],
     color: "#10D9A0",
@@ -502,7 +502,7 @@ export default function ProductsPage() {
               },
               {
                 q: "How much does Viviz CRM cost?",
-                a: "Four plans: Starter ($29/month), Growth ($79/month), Pro ($199/month), Agency ($499/month). No per-seat fees. All plans include a free trial. Growth is the most popular — it includes all 10 modules and 5 AI agents.",
+                a: "Four plans: Starter (₹999/month), Growth (₹4,999/month), Pro (₹9,999/month), Agency (contact sales). No per-seat fees. All plans include a free trial. Growth is the most popular — it includes all 10 modules and 5 AI agents.",
               },
               {
                 q: "What are the 10 platform modules?",
