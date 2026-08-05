@@ -8,6 +8,7 @@ import {
   COMPANY_PHONE_1,
   COMPANY_PHONE_2,
   COMPANY_ADDRESS,
+  COMPANY_BRANCH_ADDRESS,
 } from "@/lib/config";
 
 export const metadata: Metadata = {
@@ -157,8 +158,17 @@ export default function ContactPage() {
                       <MapPin size={16} className="text-[#10D9A0]" />
                     </div>
                     <div>
-                      <div className="text-xs text-[#64748B] mb-0.5">Address</div>
+                      <div className="text-xs text-[#64748B] mb-0.5">Head Office</div>
                       <span className="text-sm text-white leading-relaxed">{COMPANY_ADDRESS}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <div className="w-9 h-9 rounded-xl bg-[#10D9A0]/10 flex items-center justify-center shrink-0">
+                      <MapPin size={16} className="text-[#10D9A0]" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-[#64748B] mb-0.5">Branch Office</div>
+                      <span className="text-sm text-white leading-relaxed">{COMPANY_BRANCH_ADDRESS}</span>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">

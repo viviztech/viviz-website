@@ -26,12 +26,12 @@ import { BASE_URL, COMPANY_NAME } from "@/lib/config";
 export const metadata: Metadata = {
   title: `${COMPANY_NAME} — IT Solutions & Software Development Company`,
   description:
-    "Viviz Technologies is a software development and IT solutions company based in Karur, Tamil Nadu. We build custom web apps, mobile apps, AI solutions, and enterprise software for businesses across industries.",
+    "Viviz Technologies is a software development and IT solutions company based in Tiruchirappalli, Tamil Nadu, with a branch office in Karur. We build custom web apps, mobile apps, AI solutions, and enterprise software for businesses across industries.",
   alternates: { canonical: BASE_URL },
   openGraph: {
     title: `${COMPANY_NAME} — IT Solutions & Software Development`,
     description:
-      "Custom software development, web & mobile apps, AI/ML, data science, and cloud solutions — built by Viviz Technologies, Karur.",
+      "Custom software development, web & mobile apps, AI/ML, data science, and cloud solutions — built by Viviz Technologies, Tiruchirappalli & Karur.",
     url: BASE_URL,
   },
 };
@@ -53,7 +53,7 @@ const homepageFaqSchema = {
       name: "Where is Viviz Technologies located?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Viviz Technologies is located at No 47, 1st Floor, Sengunthapuram 3rd Cross Corner, Karur - 639002, Tamil Nadu, India. You can reach us at online@viviz.in or by phone at 9344064631 / 9342064631.",
+        text: "Viviz Technologies is headquartered at 2/13/3, Sri Sathyam Nagar, Lalgudi, Thalakudi, Tiruchirappalli - 621216, Tamil Nadu, India, with a branch office at No 47, 1st Floor, Sengunthapuram 3rd Cross Corner, Karur - 639002. You can reach us at online@viviz.in or by phone at 9344064631 / 9342064631.",
       },
     },
     {
@@ -166,9 +166,10 @@ export default function HomePage() {
                 <span className="text-[#00D4FF]">Business.</span>
               </h1>
               <p className="text-[#94A3B8] text-lg leading-relaxed mb-4 max-w-lg">
-                Viviz Technologies is a full-service IT company based in Karur, Tamil
-                Nadu. We design and build custom software — from web and mobile
-                applications to AI-powered systems and enterprise platforms.
+                Viviz Technologies is a full-service IT company based in
+                Tiruchirappalli, Tamil Nadu, with a branch office in Karur. We design
+                and build custom software — from web and mobile applications to
+                AI-powered systems and enterprise platforms.
               </p>
               <p className="text-[#64748B] text-sm mb-8 max-w-lg">
                 Whether you need a product built from scratch, a legacy system
@@ -500,7 +501,7 @@ export default function HomePage() {
               },
               {
                 q: "Where is Viviz Technologies based?",
-                a: "We are based in Karur, Tamil Nadu, India — No 47, 1st Floor, Sengunthapuram 3rd Cross Corner, Karur - 639002. Contact us at online@viviz.in or 9344064631 / 9342064631.",
+                a: "We are based in Tiruchirappalli, Tamil Nadu, India — 2/13/3, Sri Sathyam Nagar, Lalgudi, Thalakudi, Tiruchirappalli - 621216, with a branch office in Karur. Contact us at online@viviz.in or 9344064631 / 9342064631.",
               },
               {
                 q: "How do you handle a new project?",

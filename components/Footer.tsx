@@ -5,6 +5,7 @@ import {
   COMPANY_PHONE_1,
   COMPANY_PHONE_2,
   COMPANY_ADDRESS,
+  COMPANY_BRANCH_ADDRESS,
 } from "@/lib/config";
 
 const footerLinks = {
@@ -53,7 +54,13 @@ export default function Footer() {
               <li className="flex items-start gap-2.5">
                 <MapPin size={14} className="text-[#475569] mt-0.5 shrink-0" />
                 <span className="text-[#64748B] text-xs leading-relaxed">
-                  {COMPANY_ADDRESS}
+                  <span className="text-[#94A3B8]">Head Office:</span> {COMPANY_ADDRESS}
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <MapPin size={14} className="text-[#475569] mt-0.5 shrink-0" />
+                <span className="text-[#64748B] text-xs leading-relaxed">
+                  <span className="text-[#94A3B8]">Branch Office:</span> {COMPANY_BRANCH_ADDRESS}
                 </span>
               </li>
               <li className="flex items-center gap-2.5">

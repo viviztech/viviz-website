@@ -72,7 +72,7 @@ const sections = [
   {
     id: "governing-law",
     title: "12. Governing Law and Disputes",
-    body: `These Terms of Service are governed by the laws of India. Any dispute arising out of or in connection with these terms or any service engagement shall first be attempted to be resolved through good-faith negotiation. If unresolved within 30 days, disputes shall be subject to the exclusive jurisdiction of the courts in Karur, Tamil Nadu, India. The United Nations Convention on Contracts for the International Sale of Goods does not apply.`,
+    body: `These Terms of Service are governed by the laws of India. Any dispute arising out of or in connection with these terms or any service engagement shall first be attempted to be resolved through good-faith negotiation. If unresolved within 30 days, disputes shall be subject to the exclusive jurisdiction of the courts in Tiruchirappalli, Tamil Nadu, India. The United Nations Convention on Contracts for the International Sale of Goods does not apply.`,
   },
   {
     id: "contact",

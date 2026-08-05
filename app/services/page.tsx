@@ -18,7 +18,7 @@ import { BASE_URL } from "@/lib/config";
 export const metadata: Metadata = {
   title: "IT Services — Custom Software, Web, Mobile & AI Development",
   description:
-    "Viviz Technologies offers custom software development, web and mobile app development, AI & ML solutions, data science, cloud & DevOps, UI/UX design, and IT consulting from Karur, Tamil Nadu.",
+    "Viviz Technologies offers custom software development, web and mobile app development, AI & ML solutions, data science, cloud & DevOps, UI/UX design, and IT consulting from Tiruchirappalli and Karur, Tamil Nadu.",
   alternates: { canonical: `${BASE_URL}/services` },
   openGraph: {
     title: "IT Services — Viviz Technologies",

@@ -11,6 +11,11 @@ import {
   COMPANY_EMAIL,
   COMPANY_PHONE_1,
   COMPANY_ADDRESS,
+  COMPANY_CITY,
+  COMPANY_POSTAL_CODE,
+  COMPANY_BRANCH_ADDRESS,
+  COMPANY_BRANCH_CITY,
+  COMPANY_BRANCH_POSTAL_CODE,
   COMPANY_FOUNDED,
   COMPANY_DESCRIPTION,
 } from "@/lib/config";
@@ -97,8 +102,8 @@ const organizationSchema = {
   address: {
     "@type": "PostalAddress",
     streetAddress: COMPANY_ADDRESS,
-    addressLocality: "Karur",
-    postalCode: "639002",
+    addressLocality: COMPANY_CITY,
+    postalCode: COMPANY_POSTAL_CODE,
     addressCountry: "IN",
   },
   description: COMPANY_DESCRIPTION,
@@ -123,6 +128,30 @@ const organizationSchema = {
     contactType: "customer service",
     availableLanguage: "English",
   },
+  department: [
+    {
+      "@type": "Organization",
+      name: `${COMPANY_NAME} — Head Office`,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: COMPANY_ADDRESS,
+        addressLocality: COMPANY_CITY,
+        postalCode: COMPANY_POSTAL_CODE,
+        addressCountry: "IN",
+      },
+    },
+    {
+      "@type": "Organization",
+      name: `${COMPANY_NAME} — Branch Office`,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: COMPANY_BRANCH_ADDRESS,
+        addressLocality: COMPANY_BRANCH_CITY,
+        postalCode: COMPANY_BRANCH_POSTAL_CODE,
+        addressCountry: "IN",
+      },
+    },
+  ],
 };
 
 const websiteSchema = {

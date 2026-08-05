@@ -211,8 +211,8 @@ export default function PrivacyPage() {
           <div className="mt-14 pt-8 border-t border-white/5">
             <p className="text-xs text-[#475569] leading-relaxed">
               This Privacy Policy is governed by the laws of India. Any disputes arising from this
-              policy shall be subject to the exclusive jurisdiction of the courts in Karur, Tamil
-              Nadu, India.
+              policy shall be subject to the exclusive jurisdiction of the courts in
+              Tiruchirappalli, Tamil Nadu, India.
             </p>
           </div>
         </div>
