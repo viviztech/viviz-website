@@ -77,8 +77,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@viviztechnologies",
-    creator: "@viviztechnologies",
+    site: "@viviztech",
+    creator: "@viviztech",
     title: "Viviz Technologies — AI-Powered Business Software",
     description: COMPANY_DESCRIPTION,
     images: [`${BASE_URL}/og-image.png`],
@@ -118,9 +118,9 @@ const organizationSchema = {
     "Business Intelligence",
   ],
   sameAs: [
-    "https://twitter.com/viviztechnologies",
-    "https://linkedin.com/company/viviz-technologies",
-    "https://github.com/viviz-technologies",
+    "https://x.com/viviztech",
+    "https://www.linkedin.com/in/viviz-tech/",
+    "https://github.com/viviztech",
   ],
   contactPoint: {
     "@type": "ContactPoint",

@@ -192,21 +192,21 @@ export default function ContactPage() {
                     <Mail size={16} />
                   </a>
                   <a
-                    href="https://twitter.com/viviztechnologies"
+                    href="https://x.com/viviztech"
                     className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-[#64748B] hover:text-[#00D4FF] hover:bg-[#00D4FF]/10 transition-colors"
                     aria-label="Twitter"
                   >
                     <X size={16} />
                   </a>
                   <a
-                    href="https://linkedin.com/company/viviz-technologies"
+                    href="https://www.linkedin.com/in/viviz-tech/"
                     className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-[#64748B] hover:text-[#00D4FF] hover:bg-[#00D4FF]/10 transition-colors"
                     aria-label="LinkedIn"
                   >
                     <Link2 size={16} />
                   </a>
                   <a
-                    href="https://github.com/viviz-technologies"
+                    href="https://github.com/viviztech"
                     className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-[#64748B] hover:text-[#00D4FF] hover:bg-[#00D4FF]/10 transition-colors"
                     aria-label="GitHub"
                   >
