@@ -38,3 +38,25 @@ CREATE TABLE IF NOT EXISTS invoices (
 -- when the column is already present):
 --   ALTER TABLE invoices ADD COLUMN IF NOT EXISTS document_type TEXT NOT NULL DEFAULT 'invoice' CHECK (document_type IN ('invoice', 'proforma'));
 --   ALTER TABLE invoices ADD COLUMN IF NOT EXISTS converted_to_invoice_id INTEGER REFERENCES invoices(id);
+
+-- SabPaisa "Pay Now" transactions. One row per attempt, created with status
+-- 'INITIATED' right before the browser is redirected to SabPaisa, then
+-- updated when SabPaisa redirects back through /api/pay/callback.
+CREATE TABLE IF NOT EXISTS payments (
+  id SERIAL PRIMARY KEY,
+  client_txn_id TEXT NOT NULL UNIQUE,
+  sabpaisa_txn_id TEXT,
+  payer_name TEXT NOT NULL,
+  payer_email TEXT NOT NULL,
+  payer_mobile TEXT NOT NULL,
+  amount NUMERIC(12, 2) NOT NULL,
+  paid_amount NUMERIC(12, 2),
+  status TEXT NOT NULL DEFAULT 'INITIATED',
+  payment_mode TEXT,
+  bank_name TEXT,
+  status_code TEXT,
+  -- Full decrypted response object from SabPaisa, kept for support/reconciliation.
+  raw_response JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
