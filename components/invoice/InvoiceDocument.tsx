@@ -10,6 +10,7 @@ const BLUE = "#07518A", DARK = "#073B6B", PALE = "#E7F1F9", WASH = "#F5F9FC";
 const INK = "#101828", MUTED = "#475467", GRID = "#AFC3D4", WHITE = "#FFFFFF";
 const border = `0.6 solid ${GRID}`;
 const LOGO = readFileSync(join(process.cwd(), "public", "logo.jpg"));
+const SIGNATURE = readFileSync(join(process.cwd(), "public", "sign-ganesh.png"));
 
 const s = StyleSheet.create({
   page: { paddingTop: 14, paddingBottom: 29, paddingHorizontal: 22, fontFamily: "Helvetica", fontSize: 7.8, color: INK },
@@ -61,7 +62,8 @@ const s = StyleSheet.create({
   termText: { flex: 1, fontSize: 6.25, lineHeight: 1.22, color: MUTED },
   signature: { flex: 1, borderLeft: border, paddingLeft: 18, justifyContent: "space-between" },
   signFor: { fontFamily: "Helvetica-Bold", fontSize: 8.2 },
-  signatory: { fontFamily: "Helvetica-Bold", fontSize: 8, marginTop: 28, paddingTop: 4, borderTop: `0.6 solid ${GRID}` },
+  signatureImage: { width: 102, height: 28, objectFit: "contain", marginTop: 5, marginBottom: 2 },
+  signatory: { width: 102, fontFamily: "Helvetica-Bold", fontSize: 8, paddingTop: 4, borderTop: `0.6 solid ${GRID}`, textAlign: "center" },
   thanks: { fontFamily: "Helvetica-BoldOblique", fontSize: 8, color: DARK, textAlign: "center", marginTop: 6 },
   footer: { position: "absolute", left: 22, right: 22, bottom: 10, height: 16, backgroundColor: BLUE, color: WHITE, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12 },
   footerText: { fontSize: 6, fontFamily: "Helvetica-Bold", letterSpacing: 1.7 },
@@ -105,7 +107,19 @@ export default function InvoiceDocument({ invoice }: { invoice: InvoiceRecord })
         <View style={s.totalRow} wrap={false}><Text style={s.totalLabel}>TOTAL</Text><Cell t={`${invoice.lineItems.reduce((a,x)=>a+x.quantity,0)}`} x={[s.totalQty,s.center,boldBlue]}/><Cell t="" x={[s.rate]}/><Cell t={money(invoice.subtotal)} x={[s.amount,s.right,boldBlue]}/><Cell t={money(intra?invoice.cgst:invoice.igst)} x={[s.tax,s.right,boldBlue]}/><Cell t={intra?money(invoice.sgst):"-"} x={[s.tax,s.right,boldBlue]}/><Cell t={money(roundedTotal)} x={[s.total,s.right,boldBlue]}/></View>
       </View>
       <View style={s.summaryArea} wrap={false}><View style={s.words}><Text style={s.wordsLabel}>Amount in Words (INR):</Text><Text style={s.wordsValue}>{words(roundedTotal)}</Text></View><View style={s.summary}><Summary label="Total Taxable Value (Rs.)" value={money(invoice.subtotal)}/>{intra?<><Summary label={`CGST @ ${money(half,1)}%`} value={money(invoice.cgst)}/><Summary label={`SGST @ ${money(half,1)}%`} value={money(invoice.sgst)}/></>:<Summary label={`IGST @ ${money(invoice.gstRate,1)}%`} value={money(invoice.igst)}/>} {roundOff > 0.001 && <Summary label="Round Off (+)" value={money(roundOff)}/>}<Summary label="Grand Total (Rs.)" value={money(roundedTotal)} grand/></View></View>
-      <View style={s.bottom} wrap={false}><View style={s.terms}><Text style={s.sectionTag}>TERMS & CONDITIONS</Text>{terms.map((x,i)=><View key={x} style={s.termRow}><Text style={s.termNo}>{i+1}.</Text><Text style={s.termText}>{x}</Text></View>)}{invoice.notes&&<View style={[s.termRow,{marginTop:2}]}><Text style={s.termNo}>Note:</Text><Text style={s.termText}>{invoice.notes}</Text></View>}</View><View style={s.signature}><View><Text style={s.signFor}>For {COMPANY_NAME}</Text><Text style={s.signatory}>Authorized Signatory</Text></View><Text style={s.thanks}>Thank you for choosing {COMPANY_NAME}!</Text></View></View>
+      <View style={s.bottom} wrap={false}>
+        <View style={s.terms}><Text style={s.sectionTag}>TERMS & CONDITIONS</Text>{terms.map((x,i)=><View key={x} style={s.termRow}><Text style={s.termNo}>{i+1}.</Text><Text style={s.termText}>{x}</Text></View>)}{invoice.notes&&<View style={[s.termRow,{marginTop:2}]}><Text style={s.termNo}>Note:</Text><Text style={s.termText}>{invoice.notes}</Text></View>}</View>
+        <View style={s.signature}>
+          <View>
+            <Text style={s.signFor}>For {COMPANY_NAME}</Text>
+            {/* react-pdf Image does not support the HTML alt attribute. */}
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+            <Image src={SIGNATURE} style={s.signatureImage}/>
+            <Text style={s.signatory}>Authorized Signatory</Text>
+          </View>
+          <Text style={s.thanks}>Thank you for choosing {COMPANY_NAME}!</Text>
+        </View>
+      </View>
       <View style={s.footer} fixed><Text style={s.footerText}>www.{COMPANY_WEBSITE}</Text><Text style={s.pageNo} render={({pageNumber,totalPages})=>`${pageNumber} / ${totalPages}`}/></View>
     </Page>
   </Document>;
