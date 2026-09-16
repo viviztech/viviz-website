@@ -476,7 +476,7 @@ export default function InvoiceManager({
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="text-sm text-white mr-2">{formatCurrency(inv.total)}</span>
+                  <span className="text-sm text-white mr-2">{formatCurrency(Math.ceil(inv.total))}</span>
                   {inv.documentType === "proforma" && !inv.convertedToInvoiceId && (
                     <button
                       type="button"

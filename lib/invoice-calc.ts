@@ -32,12 +32,14 @@ export function calculateTotals(
   const cgstPaise = isIntraState ? Math.round(totalTaxPaise / 2) : 0;
   const sgstPaise = isIntraState ? totalTaxPaise - cgstPaise : 0;
   const igstPaise = isIntraState ? 0 : totalTaxPaise;
+  const unroundedTotalPaise = subtotalPaise + cgstPaise + sgstPaise + igstPaise;
 
   return {
     subtotalPaise,
     cgstPaise,
     sgstPaise,
     igstPaise,
-    totalPaise: subtotalPaise + cgstPaise + sgstPaise + igstPaise,
+    // Customer-facing totals are always rounded upward to the next whole rupee.
+    totalPaise: Math.ceil(unroundedTotalPaise / 100) * 100,
   };
 }
