@@ -11,21 +11,14 @@ const border = `0.6 solid ${GRID}`;
 const s = StyleSheet.create({
   page: { paddingTop: 24, paddingBottom: 35, paddingHorizontal: 22, fontFamily: "Helvetica", fontSize: 8.1, color: INK },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 },
-  brand: { width: "35%" },
+  brand: { width: "40%" },
   wordmark: { color: BLUE, fontFamily: "Helvetica-Bold", fontSize: 31, letterSpacing: -2, lineHeight: .9 },
   tech: { color: DARK, fontFamily: "Helvetica-Bold", fontSize: 8.5, letterSpacing: 4.1, marginTop: 5 },
   strap: { color: DARK, fontSize: 5.5, letterSpacing: 1.7, marginTop: 4 },
-  company: { width: "39%", paddingTop: 2 },
+  company: { width: "58%", paddingTop: 2 },
   companyName: { fontFamily: "Helvetica-Bold", fontSize: 12, marginBottom: 4 },
   companyText: { fontSize: 7.4, lineHeight: 1.35, color: MUTED },
   strong: { fontFamily: "Helvetica-Bold", color: INK },
-  services: { width: "24%" },
-  service: { flexDirection: "row", alignItems: "center", marginBottom: 5 },
-  icon: { width: 15, height: 12, border: `1.2 solid ${INK}`, borderRadius: 2, marginRight: 7, alignItems: "center", justifyContent: "center" },
-  dot: { width: 3, height: 3, borderRadius: 2, backgroundColor: INK },
-  serviceText: { fontSize: 6.7 },
-  visionLine: { borderTop: `0.8 solid ${GRID}`, marginTop: 2, paddingTop: 5 },
-  vision: { fontFamily: "Helvetica-Bold", fontSize: 5.2, letterSpacing: 1.55, color: DARK },
   info: { flexDirection: "row", gap: 12, marginBottom: 11 },
   bill: { width: "50%", border },
   label: { backgroundColor: PALE, color: DARK, fontFamily: "Helvetica-Bold", fontSize: 8.5, paddingVertical: 5, paddingHorizontal: 8 },
@@ -67,8 +60,7 @@ const s = StyleSheet.create({
   termText: { flex: 1, fontSize: 6.7, lineHeight: 1.28, color: MUTED },
   signature: { flex: 1, borderLeft: border, paddingLeft: 18, justifyContent: "space-between" },
   signFor: { fontFamily: "Helvetica-Bold", fontSize: 8.2 },
-  signMark: { color: BLUE, fontFamily: "Helvetica-Oblique", fontSize: 19, marginTop: 16, marginBottom: 4 },
-  signatory: { fontFamily: "Helvetica-Bold", fontSize: 8 },
+  signatory: { fontFamily: "Helvetica-Bold", fontSize: 8, marginTop: 38, paddingTop: 4, borderTop: `0.6 solid ${GRID}` },
   thanks: { fontFamily: "Helvetica-BoldOblique", fontSize: 8.5, color: DARK, textAlign: "center", marginTop: 8 },
   footer: { position: "absolute", left: 22, right: 22, bottom: 15, height: 18, backgroundColor: BLUE, color: WHITE, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14 },
   footerText: { fontSize: 6, fontFamily: "Helvetica-Bold", letterSpacing: 1.7 },
@@ -94,7 +86,6 @@ export default function InvoiceDocument({ invoice }: { invoice: InvoiceRecord })
       <View style={s.header} wrap={false}>
         <View style={s.brand}><Text style={s.wordmark}>VIVIZ</Text><Text style={s.tech}>TECHNOLOGIES</Text><Text style={s.strap}>CAPTURE | CREATE | EMPOWER</Text></View>
         <View style={s.company}><Text style={s.companyName}>{COMPANY_NAME}</Text><Text style={s.companyText}>{INVOICE_COMPANY_ADDRESS}</Text><Text style={s.companyText}>Branch: {INVOICE_BRANCH_ADDRESS}</Text><Text style={[s.companyText, s.strong]}>GSTIN: {COMPANY_GSTIN}</Text><Text style={s.companyText}>{COMPANY_EMAIL} | {COMPANY_PHONE_1}</Text></View>
-        <View style={s.services}>{["Photo & Video Solutions", "Studio & Lighting Equipment", "Audio & Communication", "Accessories & More"].map(x => <View key={x} style={s.service}><View style={s.icon}><View style={s.dot}/></View><Text style={s.serviceText}>{x}</Text></View>)}<View style={s.visionLine}><Text style={s.vision}>YOUR VISION. OUR SUPPORT.</Text></View></View>
       </View>
       <View style={s.info} wrap={false}>
         <View style={s.bill}><Text style={s.label}>BILL TO</Text><View style={s.billBody}><Text style={s.client}>{invoice.clientName}</Text><Text style={s.detail}>{invoice.clientAddress}</Text><Text style={s.detail}>State: {gstStateName(invoice.clientStateCode)} ({invoice.clientStateCode})</Text>{invoice.clientGstin && <Text style={s.detail}>GSTIN: {invoice.clientGstin}</Text>}</View></View>
@@ -106,8 +97,8 @@ export default function InvoiceDocument({ invoice }: { invoice: InvoiceRecord })
         <View style={s.totalRow} wrap={false}><Text style={s.totalLabel}>TOTAL</Text><Cell t={`${invoice.lineItems.reduce((a,x)=>a+x.quantity,0)}`} x={[s.totalQty,s.center,boldBlue]}/><Cell t="" x={[s.rate]}/><Cell t={money(invoice.subtotal)} x={[s.amount,s.right,boldBlue]}/><Cell t={money(intra?invoice.cgst:invoice.igst)} x={[s.tax,s.right,boldBlue]}/><Cell t={intra?money(invoice.sgst):"-"} x={[s.tax,s.right,boldBlue]}/><Cell t={money(invoice.total)} x={[s.total,s.right,boldBlue]}/></View>
       </View>
       <View style={s.summaryArea} wrap={false}><View style={s.words}><Text style={s.wordsLabel}>Amount in Words (INR):</Text><Text style={s.wordsValue}>{words(invoice.total)}</Text></View><View style={s.summary}><Summary label="Total Taxable Value (Rs.)" value={money(invoice.subtotal)}/>{intra?<><Summary label={`CGST @ ${money(half,1)}%`} value={money(invoice.cgst)}/><Summary label={`SGST @ ${money(half,1)}%`} value={money(invoice.sgst)}/></>:<Summary label={`IGST @ ${money(invoice.gstRate,1)}%`} value={money(invoice.igst)}/>}<Summary label="Grand Total (Rs.)" value={money(invoice.total)} grand/></View></View>
-      <View style={s.bottom} wrap={false}><View style={s.terms}><Text style={s.sectionTag}>TERMS & CONDITIONS</Text>{terms.map((x,i)=><View key={x} style={s.termRow}><Text style={s.termNo}>{i+1}.</Text><Text style={s.termText}>{x}</Text></View>)}{invoice.notes&&<View style={[s.termRow,{marginTop:2}]}><Text style={s.termNo}>Note:</Text><Text style={s.termText}>{invoice.notes}</Text></View>}</View><View style={s.signature}><View><Text style={s.signFor}>For {COMPANY_NAME}</Text><Text style={s.signMark}>Viviz</Text><Text style={s.signatory}>Authorized Signatory</Text></View><Text style={s.thanks}>Thank you for choosing {COMPANY_NAME}!</Text></View></View>
-      <View style={s.footer} fixed><Text style={s.footerText}>www.{COMPANY_WEBSITE}</Text><Text style={s.footerText}>EQUIPMENT FOR A BRIGHTER TOMORROW</Text><Text style={s.pageNo} render={({pageNumber,totalPages})=>`${pageNumber} / ${totalPages}`}/></View>
+      <View style={s.bottom} wrap={false}><View style={s.terms}><Text style={s.sectionTag}>TERMS & CONDITIONS</Text>{terms.map((x,i)=><View key={x} style={s.termRow}><Text style={s.termNo}>{i+1}.</Text><Text style={s.termText}>{x}</Text></View>)}{invoice.notes&&<View style={[s.termRow,{marginTop:2}]}><Text style={s.termNo}>Note:</Text><Text style={s.termText}>{invoice.notes}</Text></View>}</View><View style={s.signature}><View><Text style={s.signFor}>For {COMPANY_NAME}</Text><Text style={s.signatory}>Authorized Signatory</Text></View><Text style={s.thanks}>Thank you for choosing {COMPANY_NAME}!</Text></View></View>
+      <View style={s.footer} fixed><Text style={s.footerText}>www.{COMPANY_WEBSITE}</Text><Text style={s.pageNo} render={({pageNumber,totalPages})=>`${pageNumber} / ${totalPages}`}/></View>
     </Page>
   </Document>;
 }
