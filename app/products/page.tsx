@@ -1,550 +1,275 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  Zap,
-  Bot,
-  Globe,
-  Share2,
-  Users,
-  Megaphone,
-  BarChart3,
-  Building2,
-  Plug,
-  CheckCircle,
   ArrowRight,
-  TrendingUp,
-  Target,
-  Shield,
-  Clock,
+  Check,
+  CheckCircle2,
+  Code2,
+  Gauge,
+  Globe2,
+  MessageCircle,
+  RefreshCw,
+  ShoppingBag,
+  Sparkles,
 } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
-import { BASE_URL } from "@/lib/config";
+import { BASE_URL, COMPANY_NAME, COMPANY_PHONE_1 } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "Viviz CRM — AI Business Operating System for SMBs",
+  title: "Website Design Packages for Businesses",
   description:
-    "Viviz CRM is an AI-powered Business Operating System. Sign up, describe your business, and the platform builds your brand, website, CRM, and marketing. Pricing from ₹999/month.",
+    "Professional website design packages from Viviz Technologies. Choose a starter website, business growth website, or e-commerce store from ₹9,999.",
   alternates: { canonical: `${BASE_URL}/products` },
   openGraph: {
-    title: "Viviz CRM — AI Business Operating System for SMBs",
+    title: "Website Design Packages | Viviz Technologies",
     description:
-      "One platform with 10 modules and 10 AI agents. Replaces brand tools, website builders, CRM, email marketing, and more. From ₹999/month.",
+      "Custom, mobile-friendly business websites and e-commerce stores with clear scope and pricing from ₹9,999.",
     url: `${BASE_URL}/products`,
   },
 };
 
-const crmSchema = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Viviz CRM",
-  applicationCategory: "BusinessApplication",
-  operatingSystem: "Web",
-  url: `${BASE_URL}/products`,
-  description:
-    "Viviz CRM is an AI-powered Business Operating System for small and medium businesses. It includes 10 platform modules, 10 autonomous AI agents, a data science layer with lead scoring and churn prediction, and marketing automation across email, SMS, and WhatsApp.",
-  offers: [
-    { "@type": "Offer", name: "Starter", price: "999", priceCurrency: "INR", description: "5 modules, 2 AI agents, 1,000 contacts" },
-    { "@type": "Offer", name: "Growth", price: "4999", priceCurrency: "INR", description: "All 10 modules, 5 AI agents, 10,000 contacts" },
-    { "@type": "Offer", name: "Pro", price: "9999", priceCurrency: "INR", description: "All 10 modules, all 10 AI agents, unlimited contacts" },
-    { "@type": "Offer", name: "Agency", priceCurrency: "INR", description: "Multi-tenant white-label, unlimited workspaces — contact sales for pricing" },
-  ],
-  publisher: { "@type": "Organization", name: "Viviz Technologies", url: BASE_URL },
-};
+const whatsappHref = `https://wa.me/91${COMPANY_PHONE_1}?text=${encodeURIComponent(
+  "Hi Viviz Technologies, I would like a quote for a business website."
+)}`;
 
-const productsFaqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "What is Viviz CRM?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Viviz CRM is an AI-powered Business Operating System for small and medium businesses. A business owner signs up, describes their idea, and the platform automatically builds their brand, website, CRM, and marketing automation. It includes 10 platform modules and 10 autonomous AI agents that work 24/7.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "How much does Viviz CRM cost?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Viviz CRM is available in four plans: Starter at ₹999/month (5 modules, 2 AI agents, 1,000 contacts), Growth at ₹4,999/month (all 10 modules, 5 AI agents, 10,000 contacts), Pro at ₹9,999/month (all modules and agents, unlimited contacts), and Agency (multi-tenant white-label, contact sales for pricing). All plans include a free trial.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "What are the 10 platform modules in Viviz CRM?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "The 10 modules are: Business Setup Wizard, Brand Studio, Website Builder, Social Media Suite, CRM & Sales Pipeline, Marketing Automation, Data Science Layer, AI Agents Command Center, Business Operations, and Integrations Hub (30+ integrations).",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "What AI agents are included in Viviz CRM?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Viviz CRM includes 10 autonomous AI agents: Lead Scout, Outreach Agent, Nurture Agent, Onboarding Agent, Support Agent, Content Creator, Ad Manager, Data Analyst, Invoice Agent, and Growth Advisor. Each agent runs continuously and handles specific business workflows.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "When will Viviz CRM launch publicly?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Viviz CRM is currently in active development across an 8-phase, 16-month build plan. The public launch is targeted for 2027. Early access is available through the waitlist at viviztechnologies.com/contact.",
-      },
-    },
-  ],
-};
-
-const modules = [
+const packages = [
   {
-    icon: Zap,
-    color: "#00D4FF",
-    name: "Business Setup Wizard",
-    desc: "Sign up, describe your business idea, industry, and goals. AI generates your complete business profile and activates the platform instantly.",
-  },
-  {
-    icon: Palette2,
-    color: "#EC4899",
-    name: "Brand Studio",
-    desc: "AI-generated brand names, logos, color palettes, typography, and brand voice guidelines — a complete brand kit in minutes.",
-  },
-  {
-    icon: Globe,
-    color: "#10D9A0",
-    name: "Website Builder",
-    desc: "AI-generated website with custom domain, on-page SEO, blog integration, and automatic updates — no developer needed.",
-  },
-  {
-    icon: Share2,
-    color: "#F59E0B",
-    name: "Social Media Suite",
-    desc: "Auto-posting across all platforms, content calendar, AI content generation, and social listening — all managed from one dashboard.",
-  },
-  {
-    icon: Users,
-    color: "#00D4FF",
-    name: "CRM & Sales Pipeline",
-    desc: "Contacts, deals, tasks, invoices, and Stripe payments in one unified system. Full pipeline visibility with AI-powered follow-up suggestions.",
-  },
-  {
-    icon: Megaphone,
-    color: "#8B5CF6",
-    name: "Marketing Automation",
-    desc: "Multi-channel sequences across email, SMS, and WhatsApp. Smart segmentation, A/B testing, and ad campaign management built in.",
-  },
-  {
-    icon: BarChart3,
-    color: "#10D9A0",
-    name: "Data Science Layer",
-    desc: "Lead scoring, churn prediction, customer lifetime value, and revenue forecasting — machine learning working continuously in the background.",
-  },
-  {
-    icon: Bot,
-    color: "#8B5CF6",
-    name: "AI Agents Command Center",
-    desc: "10 autonomous agents handling lead qualification, customer onboarding, content creation, support, ad management, and more — 24/7.",
-  },
-  {
-    icon: Building2,
-    color: "#F59E0B",
-    name: "Business Operations",
-    desc: "Bookings and scheduling, team management, financial reporting, and customer support ticketing — your entire back office in one place.",
-  },
-  {
-    icon: Plug,
-    color: "#00D4FF",
-    name: "Integrations Hub",
-    desc: "30+ pre-built integrations with Stripe, Zapier, Slack, Google Workspace, Meta, Shopify, QuickBooks, and more.",
-  },
-];
-
-const agents = [
-  { name: "Lead Scout", role: "Researches and qualifies inbound leads automatically" },
-  { name: "Outreach Agent", role: "Sends personalized cold outreach sequences at scale" },
-  { name: "Nurture Agent", role: "Follows up with leads based on behavior and timing" },
-  { name: "Onboarding Agent", role: "Walks new customers through setup automatically" },
-  { name: "Support Agent", role: "Handles Tier 1 customer support 24/7" },
-  { name: "Content Creator", role: "Generates blog posts, captions, and ad copy" },
-  { name: "Ad Manager", role: "Optimizes ad spend across Google and Meta" },
-  { name: "Data Analyst", role: "Surfaces insights and generates scheduled reports" },
-  { name: "Invoice Agent", role: "Creates, sends, and follows up on invoices" },
-  { name: "Growth Advisor", role: "Recommends next actions based on business data" },
-];
-
-const pricing = [
-  {
-    name: "Starter",
-    price: "₹999",
-    period: "/mo",
-    desc: "For solopreneurs and new businesses",
-    features: ["5 platform modules", "2 AI agents", "1,000 contacts", "Email automation", "Basic analytics"],
-    color: "#64748B",
-    cta: "Start Free Trial",
-    highlight: false,
-  },
-  {
-    name: "Growth",
-    price: "₹4,999",
-    period: "/mo",
-    desc: "For growing teams and SMBs",
-    features: ["All 10 modules", "5 AI agents", "10,000 contacts", "Email + SMS + WhatsApp", "Data science layer", "Priority support"],
-    color: "#00D4FF",
-    cta: "Start Free Trial",
-    highlight: true,
-  },
-  {
-    name: "Pro",
+    name: "Starter Website",
     price: "₹9,999",
-    period: "/mo",
-    desc: "For established businesses scaling fast",
-    features: ["Everything in Growth", "All 10 AI agents", "Unlimited contacts", "Ad campaign management", "Custom integrations", "Dedicated onboarding"],
-    color: "#8B5CF6",
-    cta: "Start Free Trial",
-    highlight: false,
+    audience: "Small businesses and professionals",
+    summary: "A polished online presence with everything customers need to find and contact you.",
+    icon: Globe2,
+    accent: "#00D4FF",
+    features: [
+      "Up to 5 pages",
+      "Customised standard layout",
+      "Mobile-friendly design",
+      "WhatsApp click-to-chat",
+      "One contact form",
+      "Basic SEO and analytics",
+      "Domain, hosting and SSL connection",
+      "1 design revision",
+      "15 days bug support",
+    ],
   },
   {
-    name: "Agency",
-    price: "Contact Sales",
-    period: "",
-    desc: "For agencies managing multiple clients",
-    features: ["Multi-tenant white-label", "Unlimited workspaces", "API access", "Custom branding", "SLA support", "Team permissions"],
-    color: "#10D9A0",
-    cta: "Contact Sales",
-    highlight: false,
+    name: "Business Growth",
+    price: "₹24,999",
+    audience: "Businesses focused on enquiries",
+    summary: "A brand-led website designed to turn visits into qualified conversations.",
+    icon: Gauge,
+    accent: "#8B5CF6",
+    popular: true,
+    features: [
+      "Up to 10 pages",
+      "Custom brand-focused design",
+      "Mobile-friendly design",
+      "WhatsApp click-to-chat",
+      "Up to 3 enquiry forms",
+      "Page and enquiry admin panel",
+      "Sitemap, indexing and analytics",
+      "Enquiry conversion tracking",
+      "2 design revisions",
+      "30 days bug support",
+    ],
+  },
+  {
+    name: "E-commerce",
+    price: "₹44,999",
+    audience: "Businesses selling online",
+    summary: "A complete branded storefront for managing products, orders and payments.",
+    icon: ShoppingBag,
+    accent: "#10D9A0",
+    features: [
+      "Up to 8 content pages plus store",
+      "Branded storefront",
+      "Up to 25 initial products",
+      "Product and order admin panel",
+      "Cart and checkout",
+      "One payment gateway integration",
+      "Product-page SEO foundation",
+      "Purchase conversion tracking",
+      "2 design revisions",
+      "30 days bug support",
+    ],
   },
 ];
 
-function Palette2({ size, color }: { size?: number; color?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size ?? 24}
-      height={size ?? 24}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color ?? "currentColor"}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="13.5" cy="6.5" r=".5" fill={color ?? "currentColor"} />
-      <circle cx="17.5" cy="10.5" r=".5" fill={color ?? "currentColor"} />
-      <circle cx="8.5" cy="7.5" r=".5" fill={color ?? "currentColor"} />
-      <circle cx="6.5" cy="12.5" r=".5" fill={color ?? "currentColor"} />
-      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
-    </svg>
-  );
-}
+const comparison = [
+  ["Website scope", "Up to 5 pages", "Up to 10 pages", "8 pages + store"],
+  ["Design", "Customised layout", "Brand-focused", "Branded storefront"],
+  ["Mobile-friendly", "Included", "Included", "Included"],
+  ["WhatsApp chat", "Included", "Included", "Included"],
+  ["Forms", "1 contact form", "Up to 3 forms", "Contact + order emails"],
+  ["Admin panel", "—", "Pages + enquiries", "Products + orders"],
+  ["Product uploads", "—", "—", "Up to 25"],
+  ["Cart and checkout", "—", "—", "Included"],
+  ["Payment gateway", "—", "—", "1 integration"],
+  ["SEO foundation", "Titles + descriptions", "Plus sitemap + indexing", "Plus product SEO"],
+  ["Analytics", "Basic setup", "Enquiry tracking", "Purchase tracking"],
+  ["Revision rounds", "1", "2", "2"],
+  ["Bug support", "15 days", "30 days", "30 days"],
+];
+
+const upgrades = [
+  "AI assistant",
+  "CRM integration",
+  "WhatsApp API automation",
+  "Additional pages",
+  "Product uploads",
+  "Copywriting",
+  "Business email",
+  "Multilingual content",
+  "Ongoing maintenance",
+];
+
+const expectations = [
+  "Final pricing is confirmed after we review your exact requirements.",
+  "You provide approved text, logos, product details and images; content creation is available separately.",
+  "Domain, hosting, email, paid licences and third-party subscriptions are charged separately.",
+  "Existing domain and hosting can be used when technically compatible; SSL depends on hosting support.",
+  "Payment gateway approval and transaction charges are handled by the payment provider.",
+  "SEO covers initial setup; ongoing SEO and advertising are separate services.",
+  "Each revision round is one consolidated set of changes within the agreed scope.",
+  "Post-launch support covers bugs in delivered work; new features and updates are quoted separately.",
+  "Delivery dates and applicable taxes are confirmed in your quotation.",
+];
+
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  name: "Website Design and Development",
+  provider: { "@type": "Organization", name: COMPANY_NAME, url: BASE_URL },
+  areaServed: "IN",
+  description: "Professional website design and development for small businesses, growing companies and online stores.",
+  offers: packages.map((item) => ({
+    "@type": "Offer",
+    name: item.name,
+    price: item.price.replace(/[^0-9]/g, ""),
+    priceCurrency: "INR",
+    url: `${BASE_URL}/products`,
+  })),
+};
 
 export default function ProductsPage() {
   return (
-    <div>
-      <JsonLd data={crmSchema} />
-      <JsonLd data={productsFaqSchema} />
-      {/* Hero */}
-      <section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full bg-[#00D4FF]/5 blur-[120px]" />
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#10D9A0]/20 bg-[#10D9A0]/5 text-[#10D9A0] text-xs font-semibold tracking-widest uppercase mb-6">
-              Flagship Product
+    <div className="overflow-hidden">
+      <JsonLd data={serviceSchema} />
+
+      <section className="relative border-b border-white/5">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,212,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(0,212,255,0.035)_1px,transparent_1px)] bg-[size:44px_44px]" />
+        <div className="absolute -top-32 right-0 h-[520px] w-[520px] rounded-full bg-[#8B5CF6]/10 blur-[120px]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 grid lg:grid-cols-[1.05fr_.95fr] gap-14 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.18em] uppercase text-[#00D4FF] mb-6">
+              <span className="h-px w-8 bg-[#00D4FF]" /> Website design packages
             </div>
-            <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6 leading-tight">
-              Viviz CRM
-              <br />
-              <span className="text-[#00D4FF]">Your Entire Business,</span>
-              <br />
-              <span className="text-[#8B5CF6]">Powered by AI</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.045em] text-white leading-[1.02] max-w-3xl">
+              A website built to move your business <span className="text-[#00D4FF]">forward.</span>
             </h1>
-            <p className="text-[#64748B] text-xl leading-relaxed mb-8">
-              The world's first AI Business Operating System for SMBs. Sign up, describe
-              your business, and Viviz CRM builds your brand, launches your website,
-              runs your marketing, and grows your pipeline — all autonomously.
+            <p className="mt-6 text-lg text-[#94A3B8] leading-relaxed max-w-xl">
+              A professional online presence, a clearer offer, and an easier way for customers to connect—with scope and pricing you can understand.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#00D4FF] to-[#8B5CF6] text-white font-semibold text-sm hover:opacity-90 transition-opacity"
-              >
-                Request Early Access <ArrowRight size={16} />
-              </Link>
-              <Link
-                href="#pricing"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-white/10 bg-white/5 text-white font-semibold text-sm hover:bg-white/10 transition-colors"
-              >
-                See Pricing
+            <div className="mt-9 flex flex-col sm:flex-row gap-3">
+              <a href={whatsappHref} className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#00D4FF] text-[#07111F] font-bold text-sm hover:bg-[#63E5FF] transition-colors">
+                <MessageCircle size={17} /> Get a personalised quote
+              </a>
+              <Link href="#packages" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-white/10 bg-white/5 text-white font-semibold text-sm hover:bg-white/10 transition-colors">
+                Compare packages <ArrowRight size={16} />
               </Link>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Key stats */}
-      <section className="border-y border-white/5 bg-[#080E1C]/60 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
-            {[
-              { value: "10", label: "Platform Modules", icon: Zap, color: "#00D4FF" },
-              { value: "10", label: "Autonomous AI Agents", icon: Bot, color: "#8B5CF6" },
-              { value: "30+", label: "App Integrations", icon: Plug, color: "#10D9A0" },
-              { value: "94%", label: "Lead Score Accuracy", icon: Target, color: "#F59E0B" },
-            ].map(({ value, label, icon: Icon, color }) => (
-              <div key={label}>
-                <Icon size={20} style={{ color }} className="mx-auto mb-2" />
-                <div className="text-3xl font-bold text-white mb-1">{value}</div>
-                <div className="text-sm text-[#64748B]">{label}</div>
+          <div className="relative max-w-xl lg:ml-auto w-full">
+            <div className="absolute -inset-5 rounded-[2rem] bg-gradient-to-br from-[#00D4FF]/15 to-[#8B5CF6]/10 blur-2xl" />
+            <div className="relative rounded-2xl border border-white/10 bg-[#0F1929]/95 shadow-2xl shadow-black/40 overflow-hidden">
+              <div className="h-11 border-b border-white/10 flex items-center gap-2 px-4">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#FF6B6B]" /><span className="w-2.5 h-2.5 rounded-full bg-[#FFD166]" /><span className="w-2.5 h-2.5 rounded-full bg-[#10D9A0]" />
+                <div className="ml-3 h-6 flex-1 rounded-md bg-white/5 px-3 flex items-center text-[10px] text-[#64748B]">yourbusiness.in</div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 10 Modules */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#00D4FF]/20 bg-[#00D4FF]/5 text-[#00D4FF] text-xs font-semibold tracking-widest uppercase mb-4">
-              Platform Modules
-            </div>
-            <h2 className="text-4xl font-bold text-white mb-4">10 Modules. One Platform.</h2>
-            <p className="text-[#64748B] text-lg max-w-2xl mx-auto">
-              Every module works independently — and becomes more powerful when combined.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {modules.map(({ icon: Icon, color, name, desc }) => (
-              <div
-                key={name}
-                className="p-5 rounded-2xl border border-white/5 bg-[#0F1929] hover:border-white/10 transition-colors"
-              >
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
-                  style={{ background: `${color}18` }}
-                >
-                  <Icon size={18} style={{ color }} />
+              <div className="p-6 sm:p-8">
+                <div className="flex items-center justify-between mb-10"><div className="h-3 w-24 rounded-full bg-white/15" /><div className="flex gap-2"><span className="h-2 w-10 rounded bg-white/10"/><span className="h-2 w-10 rounded bg-white/10"/><span className="h-2 w-10 rounded bg-white/10"/></div></div>
+                <div className="grid grid-cols-[1.2fr_.8fr] gap-6 items-center">
+                  <div><div className="h-2 w-20 rounded bg-[#00D4FF]/60 mb-4"/><div className="h-5 w-full rounded bg-white/85 mb-2"/><div className="h-5 w-4/5 rounded bg-white/85 mb-5"/><div className="space-y-2"><div className="h-2 w-full rounded bg-white/10"/><div className="h-2 w-5/6 rounded bg-white/10"/></div><div className="mt-6 h-9 w-32 rounded-lg bg-[#00D4FF]"/></div>
+                  <div className="aspect-square rounded-2xl bg-gradient-to-br from-[#00D4FF]/25 via-[#8B5CF6]/20 to-[#10D9A0]/15 border border-white/10 flex items-center justify-center"><Code2 className="text-white/70" size={42}/></div>
                 </div>
-                <h3 className="text-sm font-bold text-white mb-2">{name}</h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* AI Agents */}
-      <section className="py-24 bg-[#080E1C]/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#8B5CF6]/20 bg-[#8B5CF6]/5 text-[#8B5CF6] text-xs font-semibold tracking-widest uppercase mb-6">
-                AI Agents
-              </div>
-              <h2 className="text-4xl font-bold text-white mb-4 leading-tight">
-                10 Autonomous Agents
-                <span className="text-[#8B5CF6]"> Working for Your Business</span>
-              </h2>
-              <p className="text-[#64748B] text-lg leading-relaxed mb-6">
-                Each agent is specialized, always on, and gets smarter over time. They
-                coordinate with each other, escalate to humans when needed, and handle
-                the repetitive work that consumes your team.
-              </p>
-              <div className="flex items-center gap-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[#8B5CF6]">24/7</div>
-                  <div className="text-xs text-[#64748B]">Always Active</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[#00D4FF]">10x</div>
-                  <div className="text-xs text-[#64748B]">Output Multiplier</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[#10D9A0]">0</div>
-                  <div className="text-xs text-[#64748B]">Extra Headcount</div>
-                </div>
+                <div className="grid grid-cols-3 gap-3 mt-9"><div className="h-16 rounded-xl bg-white/5 border border-white/5"/><div className="h-16 rounded-xl bg-white/5 border border-white/5"/><div className="h-16 rounded-xl bg-white/5 border border-white/5"/></div>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-3">
-              {agents.map(({ name, role }) => (
-                <div
-                  key={name}
-                  className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-[#0F1929]"
-                >
-                  <div className="w-8 h-8 rounded-full bg-[#8B5CF6]/20 flex items-center justify-center shrink-0">
-                    <Bot size={14} className="text-[#8B5CF6]" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-white">{name}</div>
-                    <div className="text-xs text-[#64748B]">{role}</div>
-                  </div>
-                </div>
-              ))}
+            <div className="absolute -bottom-5 -left-5 px-4 py-3 rounded-xl border border-[#10D9A0]/20 bg-[#0B1120] shadow-xl flex items-center gap-3">
+              <CheckCircle2 className="text-[#10D9A0]" size={20}/><div><p className="text-[10px] uppercase tracking-widest text-[#64748B]">Every package</p><p className="text-xs font-semibold text-white">Mobile-ready by default</p></div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Data Science */}
-      <section className="py-24">
+      <section id="packages" className="py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#10D9A0]/20 bg-[#10D9A0]/5 text-[#10D9A0] text-xs font-semibold tracking-widest uppercase mb-4">
-              Data Science Layer
-            </div>
-            <h2 className="text-4xl font-bold text-white mb-4">Intelligence in Every Decision</h2>
-            <p className="text-[#64748B] text-lg max-w-2xl mx-auto">
-              Machine learning models built into the platform that continuously analyze
-              your data and surface the insights that drive growth.
-            </p>
+          <div className="max-w-2xl mb-14">
+            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#00D4FF] mb-3">Choose your starting point</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Three scopes. One standard of care.</h2>
+            <p className="mt-4 text-[#64748B] leading-relaxed">Start with the package closest to your goal. We confirm the final scope and quote after a short requirements review.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: Target, color: "#10D9A0", label: "Lead Scoring", stat: "94% accuracy", desc: "ML model ranks every lead so your team knows exactly who to call first." },
-              { icon: TrendingUp, color: "#00D4FF", label: "Revenue Forecast", stat: "±8% error", desc: "Prophet time-series model predicts monthly revenue 90 days ahead." },
-              { icon: Shield, color: "#8B5CF6", label: "Churn Prediction", stat: "30 day warning", desc: "XGBoost model identifies at-risk customers before they cancel." },
-              { icon: Clock, color: "#F59E0B", label: "CLV Modeling", stat: "Full lifecycle", desc: "Customer lifetime value model segments your best customers automatically." },
-            ].map(({ icon: Icon, color, label, stat, desc }) => (
-              <div
-                key={label}
-                className="p-6 rounded-2xl border border-white/5 bg-[#0F1929]"
-              >
-                <Icon size={24} style={{ color }} className="mb-4" />
-                <div className="text-xs font-bold tracking-widest uppercase mb-1" style={{ color }}>
-                  {stat}
-                </div>
-                <h3 className="text-base font-bold text-white mb-2">{label}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="py-24 bg-[#080E1C]/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#00D4FF]/20 bg-[#00D4FF]/5 text-[#00D4FF] text-xs font-semibold tracking-widest uppercase mb-4">
-              Pricing
-            </div>
-            <h2 className="text-4xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-[#64748B] text-lg max-w-xl mx-auto">
-              Start free. Scale when you're ready. No setup fees, no contracts.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {pricing.map(({ name, price, period, desc, features, color, cta, highlight }) => (
-              <div
-                key={name}
-                className={`relative p-6 rounded-2xl border transition-all ${
-                  highlight
-                    ? "border-[#00D4FF]/30 bg-gradient-to-b from-[#00D4FF]/5 to-[#0F1929]"
-                    : "border-white/5 bg-[#0F1929]"
-                }`}
-              >
-                {highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#00D4FF] text-[#0B1120]">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-                <div className="text-xs font-bold tracking-widest uppercase mb-1" style={{ color }}>
-                  {name}
-                </div>
-                <div className="flex items-end gap-1 mb-1">
-                  <span className="text-3xl font-bold text-white">{price}</span>
-                  <span className="text-[#64748B] text-sm mb-1">{period}</span>
-                </div>
-                <p className="text-xs text-[#64748B] mb-6">{desc}</p>
-                <ul className="space-y-2.5 mb-8">
-                  {features.map((f) => (
-                    <li key={f} className="flex items-start gap-2">
-                      <CheckCircle size={14} className="mt-0.5 shrink-0" style={{ color }} />
-                      <span className="text-xs text-[#94A3B8]">{f}</span>
-                    </li>
-                  ))}
+          <div className="grid lg:grid-cols-3 gap-6 items-stretch">
+            {packages.map(({ name, price, audience, summary, icon: Icon, accent, popular, features }) => (
+              <article key={name} className={`relative flex flex-col rounded-2xl border p-7 ${popular ? "border-[#8B5CF6]/50 bg-gradient-to-b from-[#8B5CF6]/10 to-[#0F1929] lg:-translate-y-3" : "border-white/7 bg-[#0F1929]"}`}>
+                {popular && <span className="absolute -top-3 left-7 px-3 py-1 rounded-full bg-[#8B5CF6] text-white text-[10px] font-bold tracking-widest uppercase">Most versatile</span>}
+                <div className="flex items-center justify-between mb-7"><div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${accent}18`, color: accent }}><Icon size={21}/></div><span className="text-[10px] font-semibold tracking-widest uppercase text-[#64748B]">Starting at</span></div>
+                <h3 className="text-xl font-bold text-white">{name}</h3>
+                <p className="text-xs mt-1" style={{ color: accent }}>{audience}</p>
+                <div className="text-4xl font-bold text-white tracking-tight mt-5">{price}</div>
+                <p className="text-sm text-[#94A3B8] leading-relaxed mt-4 min-h-16">{summary}</p>
+                <div className="h-px bg-white/7 my-6" />
+                <ul className="space-y-3 flex-1">
+                  {features.map((feature) => <li key={feature} className="flex gap-3 text-sm text-[#CBD5E1]"><Check size={15} className="shrink-0 mt-0.5" style={{ color: accent }}/><span>{feature}</span></li>)}
                 </ul>
-                <Link
-                  href="/contact"
-                  className={`block w-full text-center py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                    highlight
-                      ? "bg-gradient-to-r from-[#00D4FF] to-[#8B5CF6] text-white hover:opacity-90"
-                      : "border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                  }`}
-                >
-                  {cta}
-                </Link>
-              </div>
+                <a href={whatsappHref} className="mt-8 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm font-semibold hover:bg-white/10 transition-colors">Ask about {name}<ArrowRight size={15}/></a>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="py-20 border-t border-white/5">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-10">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#64748B] mb-3">
-              Common questions
-            </p>
-            <h2 className="text-3xl font-bold text-white">Viviz CRM FAQ</h2>
+      <section className="py-20 bg-[#080E1C]/60 border-y border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-10"><div><p className="text-xs font-bold tracking-[0.2em] uppercase text-[#10D9A0] mb-3">Side-by-side</p><h2 className="text-3xl font-bold text-white">Compare every package</h2></div><p className="text-sm text-[#64748B] max-w-md">All packages include responsive design, WhatsApp chat, domain and hosting connection, and SSL configuration where supported.</p></div>
+          <div className="overflow-x-auto rounded-2xl border border-white/8 bg-[#0F1929]">
+            <table className="w-full min-w-[760px] text-left">
+              <thead><tr className="border-b border-white/10"><th className="p-5 text-xs uppercase tracking-widest text-[#64748B] font-semibold">Feature</th>{packages.map((item)=><th key={item.name} className="p-5 text-sm font-bold text-white">{item.name}<span className="block mt-1 text-lg" style={{color:item.accent}}>{item.price}</span></th>)}</tr></thead>
+              <tbody>{comparison.map(([feature,...values],row)=><tr key={feature} className={row%2 ? "bg-white/[0.018]" : ""}><th className="px-5 py-3.5 text-xs font-semibold text-[#CBD5E1] border-r border-white/5">{feature}</th>{values.map((value,index)=><td key={`${feature}-${packages[index].name}`} className="px-5 py-3.5 text-xs text-[#94A3B8] border-r last:border-r-0 border-white/5">{value === "Included" ? <span className="inline-flex items-center gap-1.5 text-[#10D9A0]"><Check size={13}/>Included</span> : value}</td>)}</tr>)}</tbody>
+            </table>
           </div>
-          <dl className="space-y-6">
-            {[
-              {
-                q: "What is Viviz CRM?",
-                a: "An AI-powered Business Operating System for SMBs. Sign up, describe your business, and the platform builds your brand, website, CRM, and marketing automation automatically. It includes 10 platform modules and 10 autonomous AI agents running 24/7.",
-              },
-              {
-                q: "How much does Viviz CRM cost?",
-                a: "Four plans: Starter (₹999/month), Growth (₹4,999/month), Pro (₹9,999/month), Agency (contact sales). No per-seat fees. All plans include a free trial. Growth is the most popular — it includes all 10 modules and 5 AI agents.",
-              },
-              {
-                q: "What are the 10 platform modules?",
-                a: "Business Setup Wizard, Brand Studio, Website Builder, Social Media Suite, CRM & Sales Pipeline, Marketing Automation, Data Science Layer, AI Agents Command Center, Business Operations, and Integrations Hub (30+ integrations including Stripe, Slack, Google Workspace, Meta, and Shopify).",
-              },
-              {
-                q: "What AI agents are included?",
-                a: "Lead Scout, Outreach Agent, Nurture Agent, Onboarding Agent, Support Agent, Content Creator, Ad Manager, Data Analyst, Invoice Agent, and Growth Advisor. Each is specialized, runs continuously, and escalates to humans when needed.",
-              },
-              {
-                q: "When does Viviz CRM launch publicly?",
-                a: "Currently in active development across an 8-phase, 16-month build plan. Public launch is targeted for 2027. Early access is available through the waitlist — join via the contact page.",
-              },
-            ].map(({ q, a }) => (
-              <div key={q} className="border-b border-white/5 pb-6">
-                <dt className="text-sm font-semibold text-white mb-2">{q}</dt>
-                <dd className="text-sm text-[#64748B] leading-relaxed">{a}</dd>
-              </div>
-            ))}
-          </dl>
         </div>
       </section>
 
-      {/* CTA */}
+      <section className="py-20 lg:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-8">
+          <div className="rounded-2xl border border-white/8 bg-[#0F1929] p-8">
+            <div className="w-10 h-10 rounded-xl bg-[#8B5CF6]/10 text-[#8B5CF6] flex items-center justify-center mb-6"><Sparkles size={20}/></div>
+            <h2 className="text-2xl font-bold text-white">Optional upgrades</h2><p className="text-sm text-[#64748B] mt-2 mb-7">Add only what your workflow needs. Each upgrade is quoted separately.</p>
+            <div className="flex flex-wrap gap-2.5">{upgrades.map(item=><span key={item} className="px-3 py-2 rounded-lg border border-white/8 bg-white/[0.025] text-xs text-[#CBD5E1]">{item}</span>)}</div>
+          </div>
+          <div className="rounded-2xl border border-white/8 bg-[#0F1929] p-8">
+            <div className="w-10 h-10 rounded-xl bg-[#00D4FF]/10 text-[#00D4FF] flex items-center justify-center mb-6"><RefreshCw size={20}/></div>
+            <h2 className="text-2xl font-bold text-white">Already have a website?</h2><p className="text-[#94A3B8] leading-relaxed mt-3">Refresh the design, improve mobile usability, or add features without starting over. We quote redesigns after reviewing your existing website and priorities.</p>
+            <a href={whatsappHref} className="inline-flex items-center gap-2 text-sm font-semibold text-[#00D4FF] mt-7 hover:text-white transition-colors">Request a website review <ArrowRight size={15}/></a>
+          </div>
+        </div>
+      </section>
+
+      <section className="pb-20 lg:pb-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-[.8fr_1.2fr] gap-10 lg:gap-16 border-t border-white/8 pt-16">
+            <div><p className="text-xs font-bold tracking-[0.2em] uppercase text-[#64748B] mb-3">Before we begin</p><h2 className="text-3xl font-bold text-white">What to expect</h2><p className="text-sm text-[#64748B] leading-relaxed mt-4">Clear inputs make for a smoother build. These details keep scope, ownership and costs transparent.</p></div>
+            <ol className="grid sm:grid-cols-2 gap-x-8 gap-y-5">{expectations.map((item,index)=><li key={item} className="flex gap-3 text-sm text-[#94A3B8] leading-relaxed"><span className="text-[10px] font-bold text-[#00D4FF] mt-1">{String(index+1).padStart(2,"0")}</span><span>{item}</span></li>)}</ol>
+          </div>
+        </div>
+      </section>
+
       <section className="pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="border border-white/8 rounded-2xl p-10 bg-[#0F1929]">
-            <div className="max-w-xl">
-              <h2 className="text-2xl font-bold text-white mb-3">
-                Join the early access waitlist.
-              </h2>
-              <p className="text-[#64748B] mb-6">
-                We're onboarding the first businesses onto Viviz CRM. Tell us about
-                your business and we'll reach out when your spot is ready.
-              </p>
-              <Link
-                href="/contact"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#00D4FF] text-[#0B1120] font-semibold text-sm hover:bg-[#00BFEA] transition-colors"
-              >
-                Request early access <ArrowRight size={15} />
-              </Link>
-            </div>
+          <div className="relative overflow-hidden rounded-3xl border border-[#00D4FF]/20 bg-[#0E1B2D] p-8 sm:p-12 lg:p-14">
+            <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-[#00D4FF]/10 blur-[90px]"/><div className="relative max-w-3xl"><p className="text-xs font-bold tracking-[0.2em] uppercase text-[#10D9A0] mb-4">Let&apos;s build your business website</p><h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Tell us your business name, website type and must-have features.</h2><p className="mt-4 text-[#94A3B8]">We&apos;ll review your needs and send a personalised scope and quotation.</p><a href={whatsappHref} className="mt-8 inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#10D9A0] text-[#071A16] font-bold text-sm hover:bg-[#69E8C1] transition-colors"><MessageCircle size={17}/>WhatsApp {COMPANY_PHONE_1}</a></div>
           </div>
         </div>
       </section>

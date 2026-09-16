@@ -12,14 +12,14 @@ const footerLinks = {
   Company: [
     { label: "About", href: "/about" },
     { label: "Services", href: "/services" },
-    { label: "Products", href: "/products" },
+    { label: "Website Packages", href: "/products" },
     { label: "Contact", href: "/contact" },
   ],
-  Products: [
-    { label: "Viviz CRM", href: "/products" },
-    { label: "AI Agents", href: "/services#ai-agents" },
-    { label: "Data Science", href: "/services#data-science" },
-    { label: "Marketing Automation", href: "/services#marketing-automation" },
+  Solutions: [
+    { label: "Website Packages", href: "/products" },
+    { label: "Custom Software", href: "/services#custom-software" },
+    { label: "AI Solutions", href: "/services#ai-ml" },
+    { label: "Data & Automation", href: "/services#data-science" },
   ],
   Legal: [
     { label: "Privacy Policy", href: "/privacy" },
