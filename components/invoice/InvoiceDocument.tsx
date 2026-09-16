@@ -1,4 +1,6 @@
-import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { Style } from "@react-pdf/types";
 import { COMPANY_NAME, COMPANY_EMAIL, COMPANY_PHONE_1, COMPANY_WEBSITE, INVOICE_COMPANY_ADDRESS, INVOICE_BRANCH_ADDRESS, COMPANY_GSTIN, COMPANY_STATE } from "@/lib/config";
 import { gstStateName } from "@/lib/gst";
@@ -7,15 +9,14 @@ import type { InvoiceRecord } from "@/lib/invoices";
 const BLUE = "#07518A", DARK = "#073B6B", PALE = "#E7F1F9", WASH = "#F5F9FC";
 const INK = "#101828", MUTED = "#475467", GRID = "#AFC3D4", WHITE = "#FFFFFF";
 const border = `0.6 solid ${GRID}`;
+const LOGO = readFileSync(join(process.cwd(), "public", "logo.jpg"));
 
 const s = StyleSheet.create({
   page: { paddingTop: 24, paddingBottom: 35, paddingHorizontal: 22, fontFamily: "Helvetica", fontSize: 8.1, color: INK },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 },
-  brand: { width: "40%" },
-  wordmark: { color: BLUE, fontFamily: "Helvetica-Bold", fontSize: 31, letterSpacing: -2, lineHeight: .9 },
-  tech: { color: DARK, fontFamily: "Helvetica-Bold", fontSize: 8.5, letterSpacing: 4.1, marginTop: 5 },
-  strap: { color: DARK, fontSize: 5.5, letterSpacing: 1.7, marginTop: 4 },
-  company: { width: "58%", paddingTop: 2 },
+  brand: { width: "35%" },
+  logo: { width: 76, height: 76, objectFit: "contain" },
+  company: { width: "63%", paddingTop: 2 },
   companyName: { fontFamily: "Helvetica-Bold", fontSize: 12, marginBottom: 4 },
   companyText: { fontSize: 7.4, lineHeight: 1.35, color: MUTED },
   strong: { fontFamily: "Helvetica-Bold", color: INK },
@@ -84,7 +85,11 @@ export default function InvoiceDocument({ invoice }: { invoice: InvoiceRecord })
   return <Document title={invoice.invoiceNumber} author={COMPANY_NAME} subject={proforma ? "Proforma Invoice" : "Tax Invoice"}>
     <Page size="A4" style={s.page}>
       <View style={s.header} wrap={false}>
-        <View style={s.brand}><Text style={s.wordmark}>VIVIZ</Text><Text style={s.tech}>TECHNOLOGIES</Text><Text style={s.strap}>CAPTURE | CREATE | EMPOWER</Text></View>
+        <View style={s.brand}>
+          {/* react-pdf Image has no HTML alt attribute; the company name follows beside it. */}
+          {/* eslint-disable-next-line jsx-a11y/alt-text */}
+          <Image src={LOGO} style={s.logo} />
+        </View>
         <View style={s.company}><Text style={s.companyName}>{COMPANY_NAME}</Text><Text style={s.companyText}>{INVOICE_COMPANY_ADDRESS}</Text><Text style={s.companyText}>Branch: {INVOICE_BRANCH_ADDRESS}</Text><Text style={[s.companyText, s.strong]}>GSTIN: {COMPANY_GSTIN}</Text><Text style={s.companyText}>{COMPANY_EMAIL} | {COMPANY_PHONE_1}</Text></View>
       </View>
       <View style={s.info} wrap={false}>
