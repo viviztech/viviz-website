@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildPaymentRedirect, generateClientTxnId } from "@/lib/sabpaisa";
 import { createPayment } from "@/lib/payments";
+import { getWebsitePackagePayment } from "@/lib/website-packages";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MOBILE_RE = /^[6-9]\d{9}$/;
@@ -11,7 +12,13 @@ export async function POST(req: NextRequest) {
     const payerName = String(body?.payerName ?? "").trim();
     const payerEmail = String(body?.payerEmail ?? "").trim();
     const payerMobile = String(body?.payerMobile ?? "").trim();
-    const amount = Number(body?.amount);
+    const packageId = body?.packageId;
+    const selectedPackage = getWebsitePackagePayment(packageId);
+    if (packageId !== undefined && !selectedPackage) {
+      return NextResponse.json({ error: "Invalid website package." }, { status: 400 });
+    }
+    // Package prices are resolved server-side. The browser cannot override them.
+    const amount = selectedPackage?.amount ?? Number(body?.amount);
 
     if (!payerName) {
       return NextResponse.json({ error: "Name is required." }, { status: 400 });

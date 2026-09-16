@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
 import { BASE_URL, COMPANY_NAME, COMPANY_PHONE_1 } from "@/lib/config";
+import type { WebsitePackageId } from "@/lib/website-packages";
 
 export const metadata: Metadata = {
   title: "Website Design Packages for Businesses",
@@ -34,6 +35,7 @@ const whatsappHref = `https://wa.me/91${COMPANY_PHONE_1}?text=${encodeURICompone
 
 const packages = [
   {
+    id: "starter" as WebsitePackageId,
     name: "Starter Website",
     price: "₹9,999",
     audience: "Small businesses and professionals",
@@ -53,6 +55,7 @@ const packages = [
     ],
   },
   {
+    id: "growth" as WebsitePackageId,
     name: "Business Growth",
     price: "₹24,999",
     audience: "Businesses focused on enquiries",
@@ -74,6 +77,7 @@ const packages = [
     ],
   },
   {
+    id: "ecommerce" as WebsitePackageId,
     name: "E-commerce",
     price: "₹44,999",
     audience: "Businesses selling online",
@@ -211,7 +215,7 @@ export default function ProductsPage() {
             <p className="mt-4 text-[#64748B] leading-relaxed">Start with the package closest to your goal. We confirm the final scope and quote after a short requirements review.</p>
           </div>
           <div className="grid lg:grid-cols-3 gap-6 items-stretch">
-            {packages.map(({ name, price, audience, summary, icon: Icon, accent, popular, features }) => (
+            {packages.map(({ id, name, price, audience, summary, icon: Icon, accent, popular, features }) => (
               <article key={name} className={`relative flex flex-col rounded-2xl border p-7 ${popular ? "border-[#8B5CF6]/50 bg-gradient-to-b from-[#8B5CF6]/10 to-[#0F1929] lg:-translate-y-3" : "border-white/7 bg-[#0F1929]"}`}>
                 {popular && <span className="absolute -top-3 left-7 px-3 py-1 rounded-full bg-[#8B5CF6] text-white text-[10px] font-bold tracking-widest uppercase">Most versatile</span>}
                 <div className="flex items-center justify-between mb-7"><div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${accent}18`, color: accent }}><Icon size={21}/></div><span className="text-[10px] font-semibold tracking-widest uppercase text-[#64748B]">Starting at</span></div>
@@ -223,7 +227,10 @@ export default function ProductsPage() {
                 <ul className="space-y-3 flex-1">
                   {features.map((feature) => <li key={feature} className="flex gap-3 text-sm text-[#CBD5E1]"><Check size={15} className="shrink-0 mt-0.5" style={{ color: accent }}/><span>{feature}</span></li>)}
                 </ul>
-                <a href={whatsappHref} className="mt-8 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm font-semibold hover:bg-white/10 transition-colors">Ask about {name}<ArrowRight size={15}/></a>
+                <div className="mt-8 grid grid-cols-2 gap-2.5">
+                  <Link href={`/pay?package=${id}`} className="inline-flex justify-center items-center gap-2 py-3 rounded-xl text-[#07111F] text-sm font-bold transition-colors" style={{ backgroundColor: accent }}>Pay now</Link>
+                  <a href={whatsappHref} className="inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm font-semibold hover:bg-white/10 transition-colors">Ask first<ArrowRight size={14}/></a>
+                </div>
               </article>
             ))}
           </div>

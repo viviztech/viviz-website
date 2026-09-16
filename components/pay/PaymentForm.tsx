@@ -2,12 +2,17 @@
 
 import { useState } from "react";
 import { IndianRupee, Loader2, ShieldCheck } from "lucide-react";
+import type { WebsitePackagePayment } from "@/lib/website-packages";
 
-export default function PaymentForm() {
+export default function PaymentForm({
+  selectedPackage,
+}: {
+  selectedPackage: WebsitePackagePayment | null;
+}) {
   const [payerName, setPayerName] = useState("");
   const [payerEmail, setPayerEmail] = useState("");
   const [payerMobile, setPayerMobile] = useState("");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(selectedPackage ? String(selectedPackage.amount) : "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,7 +24,13 @@ export default function PaymentForm() {
       const res = await fetch("/api/pay/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ payerName, payerEmail, payerMobile, amount: Number(amount) }),
+        body: JSON.stringify({
+          payerName,
+          payerEmail,
+          payerMobile,
+          amount: Number(amount),
+          packageId: selectedPackage?.id,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -62,7 +73,14 @@ export default function PaymentForm() {
         <div className="w-9 h-9 rounded-xl bg-[#00D4FF]/10 flex items-center justify-center shrink-0">
           <IndianRupee size={16} className="text-[#00D4FF]" />
         </div>
-        <h1 className="text-lg font-bold text-white">Pay Viviz Technologies</h1>
+        <div>
+          <h1 className="text-lg font-bold text-white">
+            {selectedPackage ? selectedPackage.name : "Pay Viviz Technologies"}
+          </h1>
+          {selectedPackage && (
+            <p className="text-xs text-[#64748B] mt-0.5">Website package payment</p>
+          )}
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -114,7 +132,8 @@ export default function PaymentForm() {
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/8 text-white placeholder-[#475569] text-sm focus:outline-none focus:border-[#00D4FF]/40 focus:bg-white/8 transition-colors"
+            readOnly={Boolean(selectedPackage)}
+            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/8 text-white placeholder-[#475569] text-sm focus:outline-none focus:border-[#00D4FF]/40 focus:bg-white/8 transition-colors read-only:text-[#00D4FF] read-only:font-bold read-only:cursor-not-allowed"
             placeholder="0.00"
           />
         </div>
@@ -127,7 +146,13 @@ export default function PaymentForm() {
         disabled={loading}
         className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-[#00D4FF] to-[#8B5CF6] text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {loading ? <Loader2 size={16} className="animate-spin" /> : "Proceed to Pay"}
+        {loading ? (
+          <Loader2 size={16} className="animate-spin" />
+        ) : selectedPackage ? (
+          `Pay ₹${selectedPackage.amount.toLocaleString("en-IN")}`
+        ) : (
+          "Proceed to Pay"
+        )}
       </button>
 
       <p className="flex items-center justify-center gap-1.5 text-[11px] text-[#475569]">
