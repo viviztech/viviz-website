@@ -37,27 +37,8 @@ export default function PaymentForm({
         throw new Error(data.error || "Something went wrong.");
       }
 
-      // Hand off to SabPaisa's hosted checkout: a hidden form POST, same
-      // mechanism their own SDK uses. encData/clientCode are meaningless
-      // without the server-side keys, so this is safe to build client-side.
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = data.url;
-
-      const encDataInput = document.createElement("input");
-      encDataInput.type = "hidden";
-      encDataInput.name = "encData";
-      encDataInput.value = data.encData;
-      form.appendChild(encDataInput);
-
-      const clientCodeInput = document.createElement("input");
-      clientCodeInput.type = "hidden";
-      clientCodeInput.name = "clientCode";
-      clientCodeInput.value = data.clientCode;
-      form.appendChild(clientCodeInput);
-
-      document.body.appendChild(form);
-      form.submit();
+      // PG 3.0 returns a short-lived hosted checkout URL created server-side.
+      window.location.assign(data.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start payment.");
       setLoading(false);

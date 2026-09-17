@@ -2,32 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { parsePaymentResponse } from "@/lib/sabpaisa";
 import { applyPaymentResponse } from "@/lib/payments";
 
-// SabPaisa redirects the payer's browser here after checkout, appending an
-// encrypted `encResponse` param. Some integrations deliver it as a GET query
-// param (browser redirect), others as a POSTed form body -- handle both.
+// PG 3.0 redirects here with signed transaction fields. Accept GET query
+// parameters and POSTed form/JSON payloads, then verify them server-side.
 async function handleCallback(req: NextRequest): Promise<NextResponse> {
-  let encResponse = req.nextUrl.searchParams.get("encResponse");
+  const params = new URLSearchParams(req.nextUrl.searchParams);
 
-  if (!encResponse && req.method === "POST") {
+  if (req.method === "POST") {
     const contentType = req.headers.get("content-type") ?? "";
     if (contentType.includes("form")) {
       const form = await req.formData();
-      encResponse = form.get("encResponse")?.toString() ?? null;
+      for (const [key, value] of form.entries()) params.set(key, value.toString());
     } else {
       const body = await req.json().catch(() => null);
-      encResponse = body?.encResponse ?? null;
+      if (body && typeof body === "object") {
+        for (const [key, value] of Object.entries(body)) {
+          if (value != null) params.set(key, String(value));
+        }
+      }
     }
   }
 
   const resultUrl = new URL("/pay/result", req.nextUrl.origin);
 
-  if (!encResponse) {
+  if (!params.get("signature")) {
     resultUrl.searchParams.set("error", "missing_response");
     return NextResponse.redirect(resultUrl, { status: 303 });
   }
 
   try {
-    const response = await parsePaymentResponse(encResponse);
+    const response = parsePaymentResponse(params);
     const payment = await applyPaymentResponse(response);
 
     if (!payment) {
