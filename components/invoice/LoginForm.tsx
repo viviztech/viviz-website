@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Loader2 } from "lucide-react";
 
-export default function LoginForm() {
+export default function LoginForm({ title = "Invoice Generator", destination = "/invoice" }: { title?: string; destination?: string }) {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ export default function LoginForm() {
       if (!res.ok) {
         throw new Error(data.error || "Something went wrong.");
       }
-      router.push("/invoice");
+      router.push(destination);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to log in.");
@@ -42,7 +42,7 @@ export default function LoginForm() {
         <div className="w-9 h-9 rounded-xl bg-[#00D4FF]/10 flex items-center justify-center shrink-0">
           <Lock size={16} className="text-[#00D4FF]" />
         </div>
-        <h1 className="text-lg font-bold text-white">Invoice Generator</h1>
+        <h1 className="text-lg font-bold text-white">{title}</h1>
       </div>
 
       <div>

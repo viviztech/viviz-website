@@ -7,7 +7,7 @@ import { INVOICE_SESSION_COOKIE, isValidSessionToken } from "@/lib/session-token
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/invoice/login") {
+  if (pathname === "/invoice/login" || pathname === "/employees/login") {
     return NextResponse.next();
   }
 
@@ -17,13 +17,13 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/api/invoices")) {
+  if (pathname.startsWith("/api/invoices") || pathname.startsWith("/api/employees")) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  return NextResponse.redirect(new URL("/invoice/login", request.url));
+  return NextResponse.redirect(new URL(pathname.startsWith("/employees") ? "/employees/login" : "/invoice/login", request.url));
 }
 
 export const config = {
-  matcher: ["/invoice/:path*", "/api/invoices/:path*"],
+  matcher: ["/invoice/:path*", "/api/invoices/:path*", "/employees/:path*", "/api/employees/:path*"],
 };

@@ -60,3 +60,27 @@ CREATE TABLE IF NOT EXISTS payments (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Employee onboarding records used by the protected HR workspace. Offer
+-- letters are rendered from the current record, so corrections made by an
+-- administrator are reflected the next time the PDF is generated.
+CREATE TABLE IF NOT EXISTS employees (
+  id SERIAL PRIMARY KEY,
+  employee_code TEXT UNIQUE,
+  full_name TEXT NOT NULL,
+  personal_email TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  address TEXT NOT NULL,
+  role TEXT NOT NULL,
+  department TEXT NOT NULL,
+  employment_type TEXT NOT NULL CHECK (employment_type IN ('full_time', 'part_time', 'contract', 'internship')),
+  work_location TEXT NOT NULL,
+  joining_date DATE NOT NULL,
+  annual_ctc NUMERIC(12, 2) NOT NULL CHECK (annual_ctc >= 0),
+  probation_months INTEGER NOT NULL DEFAULT 3 CHECK (probation_months BETWEEN 0 AND 24),
+  reporting_manager TEXT,
+  status TEXT NOT NULL DEFAULT 'offer_drafted' CHECK (status IN ('offer_drafted', 'offer_sent', 'accepted', 'joined')),
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
