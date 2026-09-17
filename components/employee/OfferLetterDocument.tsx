@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
-import { COMPANY_ADDRESS, COMPANY_EMAIL, COMPANY_NAME, COMPANY_PHONE_1, COMPANY_WEBSITE } from "@/lib/config";
+import { COMPANY_BRANCH_ADDRESS, COMPANY_EMAIL, COMPANY_NAME, COMPANY_PHONE_1, COMPANY_WEBSITE } from "@/lib/config";
 import type { EmployeeRecord } from "@/lib/employees";
 
 /* eslint-disable jsx-a11y/alt-text -- react-pdf Image is not an HTML image and has no alt prop */
@@ -26,7 +26,7 @@ const typeLabel=(x:string)=>x.split("_").map(v=>v[0].toUpperCase()+v.slice(1)).j
 
 export default function OfferLetterDocument({ employee }: { employee: EmployeeRecord }) {
   return <Document title={`Offer Letter - ${employee.fullName}`} author={COMPANY_NAME} subject="Employment offer letter"><Page size="A4" style={s.page}>
-    <View style={s.header}><Image src={logo} style={s.logo}/><View><Text style={s.company}>{COMPANY_NAME}</Text><Text style={s.contact}>{COMPANY_ADDRESS}</Text><Text style={s.contact}>{COMPANY_EMAIL} | {COMPANY_PHONE_1} | www.{COMPANY_WEBSITE}</Text></View></View>
+    <View style={s.header}><Image src={logo} style={s.logo}/><View><Text style={s.company}>{COMPANY_NAME}</Text><Text style={s.contact}>{COMPANY_BRANCH_ADDRESS}</Text><Text style={s.contact}>{COMPANY_EMAIL} | {COMPANY_PHONE_1} | www.{COMPANY_WEBSITE}</Text></View></View>
     <View style={s.reference}><Text>Reference: {employee.employeeCode}</Text><Text>Date: {new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"})}</Text></View>
     <Text style={s.title}>OFFER OF EMPLOYMENT</Text><Text style={s.name}>Dear {employee.fullName},</Text>
     <Text style={s.p}>We are pleased to offer you employment with {COMPANY_NAME}. Your experience and potential will be a valued addition to our team. The principal terms of this offer are set out below.</Text>
