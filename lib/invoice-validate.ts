@@ -35,6 +35,7 @@ export function parseInvoicePayload(
 
   const validLineItems: InvoiceLineItem[] = lineItems.map((item) => ({
     description: String(item.description ?? ""),
+    serviceDetails: item.serviceDetails ? String(item.serviceDetails).trim() : undefined,
     hsnSac: item.hsnSac ? String(item.hsnSac) : undefined,
     quantity: Number(item.quantity),
     rate: Number(item.rate),

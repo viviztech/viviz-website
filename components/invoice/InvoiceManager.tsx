@@ -8,7 +8,7 @@ import { fromPaise } from "@/lib/money";
 import { COMPANY_STATE_CODE } from "@/lib/config";
 import type { DocumentType, InvoiceRecord } from "@/lib/invoices";
 
-const emptyLineItem: InvoiceLineItem = { description: "", hsnSac: "", quantity: 1, rate: 0 };
+const emptyLineItem: InvoiceLineItem = { description: "", serviceDetails: "", hsnSac: "", quantity: 1, rate: 0 };
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -98,7 +98,7 @@ export default function InvoiceManager({
     setDueDate(inv.dueDate ?? "");
     setGstRate(inv.gstRate);
     setNotes(inv.notes ?? "");
-    setLineItems(inv.lineItems.map((item) => ({ ...item, hsnSac: item.hsnSac ?? "" })));
+    setLineItems(inv.lineItems.map((item) => ({ ...item, serviceDetails: item.serviceDetails ?? "", hsnSac: item.hsnSac ?? "" })));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -318,7 +318,8 @@ export default function InvoiceManager({
                   required
                   value={item.description}
                   onChange={(e) => updateLineItem(i, "description", e.target.value)}
-                  placeholder="Description"
+                  placeholder="Product or service name"
+                  aria-label={`Product or service name for item ${i + 1}`}
                   className={`${inputClass} col-span-5`}
                 />
                 <input
@@ -356,6 +357,19 @@ export default function InvoiceManager({
                 >
                   <Trash2 size={16} />
                 </button>
+                <div className="col-span-12">
+                  <label htmlFor={`service-details-${i}`} className={labelClass}>
+                    Included services / description (optional)
+                  </label>
+                  <textarea
+                    id={`service-details-${i}`}
+                    rows={3}
+                    value={item.serviceDetails ?? ""}
+                    onChange={(e) => updateLineItem(i, "serviceDetails", e.target.value)}
+                    placeholder="Describe what is included in this product or service"
+                    className={`${inputClass} resize-y`}
+                  />
+                </div>
               </div>
             ))}
           </div>

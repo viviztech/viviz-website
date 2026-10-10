@@ -3,6 +3,7 @@ import { toPaise } from "@/lib/money";
 
 export interface InvoiceLineItem {
   description: string;
+  serviceDetails?: string;
   hsnSac?: string;
   quantity: number;
   rate: number; // rupees, per unit
