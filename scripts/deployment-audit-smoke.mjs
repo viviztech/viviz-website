@@ -1,6 +1,7 @@
 // Deployment-only audit lifecycle check. It deletes only the audit it creates.
 void (async () => {
-  const { randomUUID } = await import("node:crypto");
+  // Also works when Coolify loads this script through indirect eval in node -e.
+  const randomUUID = () => globalThis.crypto.randomUUID();
   const base = `http://127.0.0.1:${process.env.PORT || "3000"}`;
   const cookies = new Map();
   const result = { ok: false, statuses: {}, counts: {} };
