@@ -4,7 +4,7 @@ The selected deployment moves the website, audit worker and PostgreSQL data to t
 
 The owner has configured dashboard DNS and HTTPS. `https://coolify.viviz.in` resolves to `187.127.178.143` with a trusted certificate; its unauthenticated `/api/health` returns 200 and authenticated Coolify API access (4.5.0) works. The token is stored only in ignored private local access configuration; no value is included here. The owner has no SSH access, so preparation uses the authenticated HTTPS API.
 
-The **Viviz Website** project (`p7snoy3td2uupcnbzon9pm1g`) and its **production** environment (`veg72ary2usrrwv4wzudosf4`) are created. The reviewed 39-file deployment change was pushed as commit `b628f68` to `deploy/coolify-hosting`; `main` is unchanged. Coolify application **viviz-website** (`yvvtdetv81ed1rkfluljzlum`) is registered for that branch with Compose path `/docker-compose.coolify.yml` and predefined networking enabled. Automatic and preview deployments are disabled, and no public domain is assigned. It has never been started; the pre-deployment API state `exited:unhealthy` is not a failed deployment result. No target database, data pull or deployment exists yet. The production website's DNS has not been cut over; Vercel and Neon remain in place.
+The **Viviz Website** project (`p7snoy3td2uupcnbzon9pm1g`) and its **production** environment (`veg72ary2usrrwv4wzudosf4`) are created. The reviewed 39-file deployment change was pushed as commit `b628f68` to `deploy/coolify-hosting`; `main` is unchanged. Coolify application **viviz-website** (`yvvtdetv81ed1rkfluljzlum`) uses that branch, Compose path `/docker-compose.coolify.yml` and predefined networking. Private deployment `de72a07hoa1550myzgv7zrei` built commit `ba80475` and finished healthy; the restored database, web process, worker and audit lifecycle passed the rehearsal checks below. Automatic and preview deployments are disabled. No public application domain or host port is configured, and the proxy's Docker `exposedByDefault=false` setting is verified. Original production credentials and the final website cutover remain pending; Vercel and Neon are still live.
 
 ## Dashboard HTTPS without SSH
 
@@ -14,13 +14,13 @@ The completed dashboard setup used the existing Hostinger DNS and Coolify interf
 2. Once that hostname resolves to the server, use the existing Coolify interface to set **Settings > General > URL** to `https://coolify.viviz.in` and save it.
 3. Open `https://coolify.viviz.in` and confirm it serves the expected dashboard with a browser-trusted certificate, valid hostname and no TLS warning. Only then use the HTTPS address for login, tokens and private deployment settings. If certificate issuance fails, resolve DNS/proxy/certificate errors first; do not bypass certificate validation or use a token over the HTTP IP address.
 
-The owner completed the dashboard hostname change, and trusted HTTPS/API access is verified. These dashboard records are separate from the production website records; the application/database migration below remains pending.
+The owner completed the dashboard hostname change, and trusted HTTPS/API access is verified. These dashboard records are separate from the production website records; the private rehearsal below is verified and the production website cutover remains pending.
 
 ## Resources and repository configuration
 
 Create a native Coolify PostgreSQL database as a separate persistent resource, then a Git Application using the repository's `docker-compose.coolify.yml`. Keeping PostgreSQL separate gives it its own persistent volume, lifecycle, backup/import controls and health check. Do not put its data in an application container's writable layer. [Coolify's PostgreSQL guide](https://coolify.io/docs/databases/postgresql) describes the resource and private connection URL.
 
-Inspect the actual Neon PostgreSQL major version and installed extensions before selecting the target image. Use a compatible target major version at least as new as the source, with matching required extensions. The source version has not yet been verified; do not select an older image by assumption. Use `pg_dump` compatible with the source major and `pg_restore` compatible with the dump/target. Keep database ports private.
+The inspected Neon source runs PostgreSQL **17.11** with only `plpgsql` installed. The created native target uses **PostgreSQL 17 Alpine**, UUID `muhldiu6qypv45johlplqyb4`, and is healthy. Its named persistent volume `postgres-data-muhldiu6qypv45johlplqyb4` mounts at `/var/lib/postgresql/data`; no public database port is exposed. Use PostgreSQL 17-compatible dump/restore tools and retain private database networking.
 
 The Git Application contains three services:
 
@@ -32,18 +32,18 @@ The Git Application contains three services:
 
 Choose the repository/branch and a reviewed commit in Coolify. Set the build strategy to **Compose**, base directory to `/`, and Compose location to `/docker-compose.coolify.yml` relative to the repository root. Use the normal managed Compose path rather than Raw deployment. Enable **Advanced > Docker compose > Predefined network > Connect to predefined network** so the application can reach the native PostgreSQL resource on the selected destination network. Set `DATABASE_URL` to that resource's **internal** URL and verify its generated hostname resolves from the application network. [Coolify's Compose documentation](https://coolify.io/docs/applications/builds/docker-compose) explains the networking and migration-service settings.
 
-In Domains, assign only `web` the value `https://viviz.in:3000`. The suffix routes the proxy to the internal container port; visitors use ordinary HTTPS on port 443. Include the existing `www`/redirect behavior if currently used. Do not add host `ports:` mappings for PostgreSQL, the worker or web port 3000. Keep HTTP/HTTPS available to the proxy and leave the existing DNS unchanged during preparation.
+For the final public cutover, assign only `web` the domain `https://viviz.in:3000`. The suffix routes the proxy to the internal container port; visitors use ordinary HTTPS on port 443. Include the existing `www`/redirect behavior if currently used. Do not add host `ports:` mappings for PostgreSQL, the worker or web port 3000. The verified rehearsal has no application domain and no published service ports; leave production routing and DNS unchanged during preparation.
 
 ## Private configuration
 
 Enter secrets directly in Coolify's environment settings. Copy existing production values from the owner's settings; do not use local development credentials or print secrets in deployment logs.
 
-The production Vercel values are sensitive/write-only, including the database, staff, email, payment and Gemini settings. They cannot be recovered through the Vercel API. Obtain the required private values from the owner's original provider/account settings; do not extract them through the running application. The private `.env.coolify-migration` template is prepared and awaits the owner's Neon source connection and remaining settings. No secret values are documented here.
+The production Vercel values are sensitive/write-only, including the database, staff, email, payment and Gemini settings. They cannot be recovered through the Vercel API. Obtain the required private values from the owner's original provider/account settings; do not extract them through the running application. The owner saved the direct Neon connection privately. The labelled private `.env.coolify-migration` file still awaits the original staff/session, email, payment and optional Gemini values needed for production activation. Corresponding provider fields in Coolify are empty. The private rehearsal uses generated temporary staff credentials held only in ignored local configuration; replace these with the original production values before public activation. No secret values are documented here.
 
 | Variable | Migration requirement |
 | --- | --- |
 | `DATABASE_URL` | Coolify PostgreSQL private connection; restore Neon before application bootstrap |
-| `INVOICE_PASSWORD`, `INVOICE_SESSION_SECRET` | Required staff login values; preserve the current session secret during migration |
+| `INVOICE_PASSWORD`, `INVOICE_SESSION_SECRET` | Set the production staff password. Reuse the current session secret if available; a new secure secret requires staff to sign in again |
 | `NEXT_PUBLIC_BASE_URL` | `https://viviz.in`, supplied at build and runtime |
 | `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | Preserve the current verification token at build time |
 | `RESEND_API_KEY` | Preserve the existing site contact-mail configuration; separate audit delivery remains opt-in |
@@ -54,6 +54,18 @@ The production Vercel values are sensitive/write-only, including the database, s
 | Optional Gemini | Preserve the chosen free-tier key, supported model and application caps; leave disabled until deliberately configured |
 
 The SabPaisa library accepts older names, but the Compose file uses canonical names. If Vercel currently stores `SABPAISA_CLIENT_CODE`, copy its value into `SABPAISA_MERCHANT_ID`; map `SABPAISA_AUTH_KEY` to `SABPAISA_API_KEY` and `SABPAISA_AUTH_IV` to `SABPAISA_SECRET_KEY`. Preserve the current Google Analytics configuration in the source; removing Vercel Analytics does not replace it with another service. Public build variables must be present before building the web image.
+
+### Compose build settings
+
+Keep database, staff and provider secrets available at runtime only (`is_runtime=true`, `is_buildtime=false`). Make the public `NEXT_PUBLIC_*` build variables available at build time and runtime. Set **Inject Build Arguments to Dockerfile** to `false` (`inject_build_args_to_dockerfile=false`) and keep environment-value log redaction enabled.
+
+Coolify 4.5.0 parses required Compose environment references during `docker compose build`, before it writes the real runtime environment file. Set **Custom Build Command** (`docker_compose_custom_build_command`) to the following single line, which supplies harmless values for the three required references during build configuration parsing:
+
+```sh
+DATABASE_URL=postgres://build:build@invalid.invalid/build INVOICE_PASSWORD=build-only-placeholder INVOICE_SESSION_SECRET=build-only-placeholder docker compose build --pull
+```
+
+These values are placeholders, not credentials or a database used by the application. Keep the actual secrets runtime-only. Coolify adds the Compose file and build-environment file flags; after the build it writes the runtime environment and starts the services with their actual values. This configuration passed the private Docker image build and startup on the existing server.
 
 ## Rehearse the Neon restore before cutover
 
@@ -72,7 +84,25 @@ pg_restore --dbname=service=viviz-coolify-rehearsal --no-owner --no-acl --exit-o
 
 Check each command's exit status before proceeding. Restore into the intended empty database only. `--exit-on-error` and `--single-transaction` prevent a partially restored database from silently becoming the migration baseline; see the [PostgreSQL restore documentation](https://www.postgresql.org/docs/current/app-pgrestore.html). Do not use `--clean` against an existing live database to work around failed rehearsal.
 
-SSH is not required for the selected restore path. After creating the private target database, upload the protected dump through Coolify's authenticated database-import upload API, then start an [import](https://coolify.io/docs/api/endpoints/databases/create-database-import) using `source: "upload"` and the returned `upload_id`. Use the intended empty target, leave `replace_existing` and `keep_owners` false, inspect the generated restore command/error handling, and poll import status through completion before migrations. An HTTP 202 confirms acceptance only. Rehearse this route and verify restored data; no production dump or import has run yet.
+SSH is not required for the selected restore path. After creating the private target database, upload the protected dump through Coolify's authenticated database-import upload API, then start an [import](https://coolify.io/docs/api/endpoints/databases/create-database-import) using `source: "upload"` and the returned `upload_id`. Use the intended empty target, leave `replace_existing` and `keep_owners` false, inspect the generated restore command/error handling, and poll import status through completion before migrations. An HTTP 202 confirms acceptance only. This route completed the rehearsal below; the final cutover restore remains pending.
+
+### Completed restore rehearsal
+
+The source inventory contains twelve tables: nine in `neon_auth` (including the retained `project_config` row), plus `public.employees`, `public.invoices` and `public.payments`. It also contains three sequences. All original business records are preserved; detailed counts and hashes remain in ignored private verification files. Client transport was verified as TLS 1.3 with a trusted certificate; Neon proxy behavior means a false backend `pg_stat_ssl` value does not describe that client connection.
+
+A consistent `pg_export_snapshot` capture produced a **31,135-byte full custom-format backup**, held only in the ignored private `.env.coolify-backups` directory. Its checksum and `pg_restore` archive listing were checked. The target was confirmed empty before import **102**, which completed with exit code 0. Read-only validation import **103** also completed with exit code 0: full row hashes for all twelve tables, all three sequence states, column definitions and constraints matched the captured source.
+
+After application migrations and HTTP checks, read-only validation import **105** also finished with exit code 0. Every original table's data and sequence state still matched, original columns and constraints were preserved, and all seven audit tables and three migration records were verified. Detailed proofs remain in ignored private files.
+
+This was a rehearsal snapshot while the live site continued using Neon. No source writes, production website DNS cutover or final production freeze/restore occurred. Take a new final snapshot after the planned write freeze; the rehearsed copy is not assumed to contain changes made since capture.
+
+### Completed private application rehearsal
+
+Deployment `de72a07hoa1550myzgv7zrei` built and started the actual Docker images on Coolify from product commit `ba80475`. The `migrate` service completed, and `web` and `worker` are healthy. `npm run audit:check` returned `ready:true`, one active worker, all seven audit tables and all three audit migrations. Local Docker is still unavailable; the image-build and runtime evidence comes from the existing Coolify server.
+
+Private HTTP checks passed for web health, the home page, logo/signature assets, unauthorized staff rejection, staff login, original invoice/employee records and invoice/offer-letter PDFs. A real `example.com` audit also passed: submission returned 202, another browser received 404, direct GET PDF returned 405, missing download-contact details returned 400, and the customer PDF downloaded successfully after contact capture. Customer output excluded raw technical fields. Unauthorized technical access returned 401; staff login enabled the technical PDF. Both PDFs had valid PDF signatures and private access. Deleting the report returned 200 and a subsequent read returned 404.
+
+The reusable [web smoke script](../scripts/deployment-web-smoke.mjs) and [audit smoke script](../scripts/deployment-audit-smoke.mjs) were committed in `e7ad69f`; `bb90e7f` fixes the test harness's `node:crypto` binding under indirect evaluation. These later commits contain test scripts and do not change the running product image. Tests ran inside the owned containers through disabled tasks; the audit verification task was removed after execution. AI and email delivery stayed off, and no payment or email request was made. Original provider behavior and final production configuration remain unverified.
 
 ## Final cutover
 
@@ -89,4 +119,4 @@ If cutover fails before writes reopen, restore routing to the preserved old site
 
 ## Current verification
 
-Current verification passed **110 tests**, including database bootstrap/migration cases, TypeScript compilation and the full Next.js production build without runtime secrets. Earlier Netlify packaging checks remain historical verification of the unused alternative. Dashboard DNS/HTTPS and authenticated API access are verified. The deployment branch is pushed and the project, environment and stopped application are registered. Docker is unavailable in this workspace, so neither new image has been built here and no deployment has run. Original private production settings, the Neon source connection/inspection, target database creation, backup/restore rehearsal, remote deployment, public domain assignment, production website HTTPS/DNS cutover and retirement of old hosting remain pending. No production data has been pulled. The owner changed dashboard DNS; the agent has not cut over production website DNS or migrated its database.
+Current verification passed **110 tests**, TypeScript compilation and the full Next.js production build without runtime secrets. The real Coolify Docker image build, private web/worker startup, schema/heartbeat readiness, existing business-record/PDF checks and the full customer/staff audit lifecycle also passed. The private PostgreSQL target passed the source snapshot restore and read-only comparison, including preservation after application migrations and runtime checks. Earlier Netlify packaging checks are historical verification of the unused alternative. Original staff/provider settings, live provider behavior, the final write freeze/restore, public domain assignment, production website HTTPS/DNS cutover and retirement of old hosting remain pending. The original production site/database remain live on Vercel/Neon. The owner added only the Coolify dashboard DNS record; website routing remains unchanged.
