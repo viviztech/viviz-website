@@ -355,9 +355,9 @@ export default function HomePage() {
                 project like their own.
               </h2>
               <p className="text-[#64748B] leading-relaxed mb-8">
-                We're a focused team of engineers and designers who care about what we
+                We&apos;re a focused team of engineers and designers who care about what we
                 build. Every project gets senior attention, clear communication, and
-                code that's built to last — not patched together and handed over.
+                code that&apos;s built to last — not patched together and handed over.
               </p>
               <Link
                 href="/about"
@@ -467,7 +467,7 @@ export default function HomePage() {
               Industries
             </p>
             <h2 className="text-3xl font-bold text-white">
-              We've built for a wide range of industries.
+              We&apos;ve built for a wide range of industries.
             </h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -521,19 +521,28 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="pt-14" aria-labelledby="free-audit-heading">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-[#00D4FF]/25 bg-[#101F32] p-7 sm:p-9 flex flex-col md:flex-row md:items-center justify-between gap-7">
+            <div className="max-w-2xl"><p className="text-xs font-semibold text-[#57DCFF] tracking-widest uppercase mb-3">Free website audit</p><h2 id="free-audit-heading" className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Find your website&apos;s next opportunity.</h2><p className="mt-3 text-sm leading-relaxed text-[#A7B6CA]">Get website findings, relevant feature ideas and a practical improvement plan. No email required.</p></div>
+            <Link href="/website-audit" className="shrink-0 inline-flex justify-center items-center gap-2 px-5 py-3.5 rounded-lg bg-[#57DCFF] text-[#071525] font-bold text-sm hover:bg-[#9AECFF] transition-colors">Audit my website <ArrowRight size={15} aria-hidden="true" /></Link>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="border border-white/8 rounded-2xl p-10 sm:p-14 bg-[#0F1929]">
             <div className="max-w-2xl">
               <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#00D4FF] mb-4">
-                Let's build together
+                Let&apos;s build together
               </p>
               <h2 className="text-4xl font-bold text-white mb-4 leading-tight">
                 Have a project in mind?
               </h2>
               <p className="text-[#64748B] text-lg leading-relaxed mb-8">
-                Tell us what you want to build. We'll get back to you within one
+                Tell us what you want to build. We&apos;ll get back to you within one
                 business day with a clear plan and honest estimate.
               </p>
               <div className="flex flex-wrap gap-4">

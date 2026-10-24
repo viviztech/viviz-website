@@ -16,6 +16,7 @@ const footerLinks = {
     { label: "Contact", href: "/contact" },
   ],
   Solutions: [
+    { label: "Free Website Audit", href: "/website-audit" },
     { label: "Website Packages", href: "/products" },
     { label: "Custom Software", href: "/services#custom-software" },
     { label: "AI Solutions", href: "/services#ai-ml" },

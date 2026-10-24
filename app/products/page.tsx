@@ -259,7 +259,8 @@ export default function ProductsPage() {
           <div className="rounded-2xl border border-white/8 bg-[#0F1929] p-8">
             <div className="w-10 h-10 rounded-xl bg-[#00D4FF]/10 text-[#00D4FF] flex items-center justify-center mb-6"><RefreshCw size={20}/></div>
             <h2 className="text-2xl font-bold text-white">Already have a website?</h2><p className="text-[#94A3B8] leading-relaxed mt-3">Refresh the design, improve mobile usability, or add features without starting over. We quote redesigns after reviewing your existing website and priorities.</p>
-            <a href={whatsappHref} className="inline-flex items-center gap-2 text-sm font-semibold text-[#00D4FF] mt-7 hover:text-white transition-colors">Request a website review <ArrowRight size={15}/></a>
+            <Link href="/website-audit" className="inline-flex items-center gap-2 text-sm font-semibold text-[#57DCFF] mt-7 hover:text-white transition-colors">Start a free website audit <ArrowRight size={15} aria-hidden="true" /></Link>
+            <p className="text-xs leading-relaxed text-[#A7B6CA] mt-3">See the findings and relevant feature opportunities before deciding what to change. No email required.</p>
           </div>
         </div>
       </section>

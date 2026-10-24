@@ -1,0 +1,162 @@
+import { AUDIT_VERSION, type AnalyzeInput, type AuditReport, type Category, type CategorySummary, type Finding, type PageObservation } from "./types";
+import { CATALOG_VERSION, INDUSTRY_PACK_VERSION, RULEBOOK_VERSION } from "../growth-planning/catalog";
+import { deriveBusinessContext, observeCapabilities, planGrowth, publicPages } from "../growth-planning/planner";
+
+export const CHECKS_VERSION = "1.0.0";
+export const MINIMUM_SCORE_COVERAGE = 0.7;
+type RuleResult = { category: Category; weight: number; result: "pass" | "fail" | "unknown" | "not_applicable" };
+const CATEGORY_LABELS: Record<Category, string> = {
+  technical: "Technical health", seo: "Search foundations", performance: "Performance",
+  accessibility: "Accessibility", mobile: "Mobile experience", content: "Content and trust", conversion: "Customer journey",
+};
+
+function normalizeUrl(url: string) {
+  try { const parsed = new URL(url); parsed.hash = ""; return parsed.href; } catch { return url; }
+}
+
+// IDs enter bounded request contracts. This stable checksum is only an identifier,
+// not a credential or a cryptographic claim; evidence retains the complete URL.
+function observationKey(value: string) {
+  let first = 2166136261;
+  let second = 5381;
+  for (let index = 0; index < value.length; index++) {
+    first = Math.imul(first ^ value.charCodeAt(index), 16777619);
+    second = Math.imul(second, 33) ^ value.charCodeAt(index);
+  }
+  return `${(first >>> 0).toString(16).padStart(8, "0")}${(second >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+/** Every score is a normalized rule score for the declared sample, never a site-wide grade. */
+export function scoreCategory(category: Category, rules: readonly RuleResult[], note: string): CategorySummary {
+  const applicable = rules.filter((rule) => rule.category === category && rule.result !== "not_applicable");
+  const assessed = applicable.filter((rule) => rule.result === "pass" || rule.result === "fail");
+  const applicableWeight = applicable.reduce((sum, rule) => sum + rule.weight, 0);
+  const assessedWeight = assessed.reduce((sum, rule) => sum + rule.weight, 0);
+  const passedWeight = assessed.filter((rule) => rule.result === "pass").reduce((sum, rule) => sum + rule.weight, 0);
+  const sufficient = applicableWeight > 0 && assessedWeight / applicableWeight >= MINIMUM_SCORE_COVERAGE;
+  return {
+    category, label: CATEGORY_LABELS[category],
+    score: sufficient ? Math.round(100 * passedWeight / assessedWeight) : null,
+    applicable: applicableWeight, assessed: assessedWeight, passed: passedWeight,
+    coverage: assessedWeight === 0 ? "unavailable" : sufficient ? "assessed" : "limited",
+    note: `${note} Checks ${CHECKS_VERSION}: passed ${passedWeight} of ${assessedWeight} assessed rule-weight units; ${applicableWeight - assessedWeight} unknown. Formula: 100 × passed weight / assessed weight. Below 70% assessed applicable weight, no score is shown.`,
+  };
+}
+
+export function analyzeWebsite(input: AnalyzeInput): AuditReport {
+  const pages = publicPages(input.pages);
+  const context = deriveBusinessContext(input);
+  const capabilities = observeCapabilities(input, context);
+  const growth = planGrowth(input, context, capabilities);
+  const findings: Finding[] = [];
+  const results: RuleResult[] = [];
+  const performance = input.performance ?? [];
+  const measured = performance.filter((run) => run.status === "measured");
+  const fieldPerformance = input.fieldPerformance ?? { status: "unavailable" as const, reason: "No field data provider was configured or sufficient eligible field data was not returned." };
+  const inaccessible = input.pages.filter((page) => page.status !== "fetched" || page.statusCode === null || page.statusCode >= 400);
+  const htmlOnly = !pages.length || pages.some((page) => !page.rendered);
+  const evidence = (affected: PageObservation[], describe: (page: PageObservation) => string): Finding["evidence"] => affected.slice(0, 12).map((page) => ({ url: page.url, detail: describe(page) }));
+  function finding(values: Omit<Finding, "id" | "rule"> & { code: string }) {
+    const { code, ...rest } = values;
+    if (!rest.evidence.length) return;
+    findings.push({ id: `finding-${code}`, rule: `${code}@${CHECKS_VERSION}`, ...rest });
+  }
+  function check(config: {
+    code: string; category: Category; weight: number; scope: PageObservation[]; fails: (page: PageObservation) => boolean;
+    title: string; observation: string; why: string; action: string; verification: string; detail: (page: PageObservation) => string;
+    severity?: Finding["severity"]; confidence?: Finding["confidence"]; type?: Finding["type"]; applicable?: boolean; score?: boolean;
+  }) {
+    const affected = config.scope.filter(config.fails);
+    if (config.score !== false) results.push({ category: config.category, weight: config.weight, result: config.applicable === false ? "not_applicable" : !config.scope.length ? "unknown" : affected.length ? "fail" : "pass" });
+    if (!affected.length || config.applicable === false) return;
+    finding({ code: config.code, category: config.category, title: config.title, observation: config.observation, why: config.why, action: config.action, verification: config.verification, evidence: evidence(affected, config.detail), affectedCount: affected.length, checkedCount: config.scope.length, type: config.type ?? "issue", severity: config.severity ?? "medium", confidence: config.confidence ?? "high", effort: "small" });
+  }
+
+  const knownResponses = input.pages.filter((page) => page.statusCode !== null && page.statusCode >= 100);
+  check({ code: "http-response", category: "technical", weight: 4, scope: knownResponses, fails: (page) => page.statusCode! >= 400,
+    title: "Requested pages returned HTTP errors", observation: "One or more requested URLs returned an error response during collection.", why: "Customers and crawlers may be unable to reach the intended page.", action: "Review each affected URL, restore the intended page or replace links with the appropriate destination. Confirm that the response is intended before changing it.", verification: "Request the exact affected URLs again and confirm the intended public page and response status.", detail: (page) => `HTTP ${page.statusCode}; collected ${page.fetchedAt}.`, severity: "high" });
+  // A URL scheme alone must never make an entirely failed scan look healthy.
+  const transportKnown = knownResponses.length > 0;
+  const insecure = new URL(input.url).protocol !== "https:";
+  results.push({ category: "technical", weight: 1, result: !transportKnown ? "unknown" : insecure ? "fail" : "pass" });
+  if (insecure && transportKnown) finding({ code: "https-entry", category: "technical", title: "The audited entry URL uses HTTP", type: "issue", severity: "medium", confidence: "high", observation: "The audit was requested using an unencrypted HTTP URL.", why: "An HTTPS entry protects the connection and provides a consistent public route.", action: "Check HTTPS support and certificate validity, then redirect HTTP entry routes to their HTTPS equivalents where appropriate.", verification: "Open HTTP and HTTPS routes and verify the intended HTTPS redirect and valid certificate.", effort: "small", evidence: [{ url: input.url, detail: `Entry protocol: ${new URL(input.url).protocol}. Certificate and redirect configuration were not independently evaluated.` }], affectedCount: 1, checkedCount: 1 });
+
+  const byUrl = new Map(input.pages.map((page) => [normalizeUrl(page.url), page]));
+  const checkedDestinations = pages.flatMap((source) => source.links.map((link) => ({ source, target: byUrl.get(normalizeUrl(link.url)) })).filter((item) => item.target?.statusCode !== null && item.target?.statusCode !== undefined));
+  const brokenLinks = checkedDestinations.filter((item) => item.target!.statusCode! >= 400);
+  results.push({ category: "technical", weight: 2, result: checkedDestinations.length ? brokenLinks.length ? "fail" : "pass" : "unknown" });
+  if (brokenLinks.length) finding({ code: "checked-link-errors", category: "technical", type: "issue", title: "Links point to checked error responses", severity: "high", confidence: "high", observation: "Public links point to destinations that returned an HTTP error within this audit's checked sample.", why: "An error destination can interrupt a customer's journey.", action: "Fix the affected link target or restore its destination. Unchecked links need separate verification.", verification: "Follow each changed link and verify that the intended destination returns the appropriate successful response.", effort: "small", evidence: brokenLinks.slice(0, 12).map(({ source, target }) => ({ url: source.url, detail: `Link destination ${target!.url} returned HTTP ${target!.statusCode}; ${target!.fetchedAt}.` })), affectedCount: brokenLinks.length, checkedCount: checkedDestinations.length });
+  if (inaccessible.length) finding({ code: "collection-gaps", category: "technical", type: "manual_review", title: "Some requested pages could not be assessed", severity: "info", confidence: "high", observation: "Collection was blocked, failed, skipped or returned an error for part of the requested scope. Those pages are not treated as healthy or as missing features.", why: "The report can only support conclusions about observations actually returned.", action: "Review the collection status and any access restrictions. If appropriate, rerun with permission after the underlying issue is resolved; do not circumvent a block.", verification: "Confirm which URLs can be publicly retrieved and compare the reported coverage after a permitted retry.", effort: "small", evidence: evidence(inaccessible, (page) => `${page.status}${page.statusCode ? `; HTTP ${page.statusCode}` : ""}${page.error ? `; ${page.error.slice(0, 180)}` : ""}; ${page.fetchedAt}.`), affectedCount: inaccessible.length, checkedCount: input.pages.length });
+
+  check({ code: "html-title", category: "seo", weight: 2, scope: pages, fails: (page) => !page.title.trim(), title: "Page titles were not returned", observation: "A title element was not observed in the returned content for these pages.", why: "A descriptive page title helps visitors and search systems identify the page.", action: "Provide an accurate, distinct title for each important page. For JavaScript pages, verify what is emitted in the initial and rendered document.", verification: "Inspect the response and rendered document head for a meaningful title on each affected URL.", detail: (page) => `No non-empty title parsed from ${page.rendered ? "rendered content" : "returned HTML"}; ${page.fetchedAt}.` });
+  check({ code: "html-description", category: "seo", weight: 1, scope: pages, fails: (page) => !page.description.trim(), title: "Page descriptions were not observed", observation: "Some returned pages did not include a non-empty meta description.", why: "A useful description can help communicate the page's purpose in search results; search engines may choose different text.", action: "Add an accurate description to important indexable pages where a search snippet would be useful.", verification: "Inspect each important page's meta description and confirm that it reflects that page.", detail: (page) => `No non-empty meta description parsed; ${page.fetchedAt}.`, severity: "low" });
+  check({ code: "html-main-heading", category: "seo", weight: 1, scope: pages, fails: (page) => !page.h1.some((heading) => heading.trim()), title: "A main heading was not observed", observation: "The returned content for some pages did not include a non-empty H1 heading.", why: "A clear main heading can help readers understand the subject and navigate the content.", action: "Check the intended heading structure and add a descriptive main heading if appropriate. Verify JavaScript-generated headings separately.", verification: "Review the rendered heading outline and confirm a useful, accessible page subject.", detail: (page) => `No non-empty H1 parsed; ${page.fetchedAt}.`, severity: "low" });
+  const canonicals = pages.filter((page) => page.canonical);
+  check({ code: "canonical-url", category: "seo", weight: 1, scope: canonicals, applicable: canonicals.length > 0 || !pages.length, fails: (page) => { try { return !["http:", "https:"].includes(new URL(page.canonical, page.url).protocol); } catch { return true; } }, title: "Canonical references need review", observation: "A canonical reference could not be interpreted as an HTTP or HTTPS URL.", why: "An invalid canonical reference can make the preferred public URL unclear.", action: "Check the intended canonical destination and output a valid public URL where appropriate.", verification: "Inspect the canonical element and request its intended destination; verify indexability separately.", detail: (page) => `Canonical value: ${page.canonical.slice(0, 240)}.` });
+  const withJson = pages.filter((page) => page.structuredData.length > 0);
+  check({ code: "structured-data-json", category: "seo", weight: 1, scope: withJson, applicable: withJson.length > 0 || !pages.length, fails: (page) => page.structuredData.some((data) => !data.valid), title: "Structured data contains invalid JSON", observation: "At least one JSON-LD block in the checked response could not be parsed as JSON.", why: "Malformed JSON prevents that block from being interpreted as intended. Valid JSON alone does not establish schema correctness or rich-result eligibility.", action: "Repair JSON syntax and then validate the applicable vocabulary and page-specific requirements using official tools.", verification: "Parse the repaired block and validate it using the relevant structured-data test. Do not assume a rich result is guaranteed.", detail: (page) => `${page.structuredData.filter((data) => !data.valid).length} JSON-LD blocks failed JSON parsing; ${page.fetchedAt}.`, severity: "low" });
+  const duplicateGroups = new Map<string, PageObservation[]>();
+  for (const page of pages) if (page.title.trim()) {
+    const key = page.title.trim().toLowerCase();
+    duplicateGroups.set(key, [...duplicateGroups.get(key) ?? [], page]);
+  }
+  const duplicateTitles = Array.from(duplicateGroups.values()).filter((group) => group.length > 1).flat();
+  if (duplicateTitles.length) finding({ code: "duplicate-title-review", category: "seo", type: "manual_review", title: "Some checked pages share a title", severity: "low", confidence: "high", observation: "The same normalized title was returned by multiple checked URLs. Alternate routes and pagination may make this intentional.", why: "Distinct important pages are easier to identify when their titles explain the difference.", action: "Review whether these URLs serve distinct content, canonical alternatives or intentional duplicates; adjust titles only where useful.", verification: "Compare the page purpose, title and canonical behavior for the affected URLs.", effort: "small", evidence: evidence(duplicateTitles, (page) => `Returned title: “${page.title.slice(0, 180)}”.`), affectedCount: duplicateTitles.length, checkedCount: pages.length });
+  check({ code: "noindex-review", category: "seo", weight: 0, score: false, scope: pages, fails: (page) => /(?:^|[\s,])noindex(?:$|[\s,])/i.test(`${page.robotsMeta} ${page.headers["x-robots-tag"] ?? ""}`), title: "Check intentional search exclusion", observation: "A noindex directive was observed on a checked page. This may be intentional.", why: "An honored noindex directive keeps a page out of search results, which is appropriate for some pages.", action: "Confirm the intended search visibility with the site owner before changing any directive.", verification: "Inspect directives and, with authorized access, use search-console URL inspection to confirm intended indexing behavior.", detail: (page) => `robots meta: ${page.robotsMeta || "not observed"}; X-Robots-Tag: ${page.headers["x-robots-tag"] ?? "not observed"}.`, type: "manual_review", severity: "info" });
+
+  check({ code: "image-alt-signal", category: "accessibility", weight: 1, score: false, scope: pages.filter((page) => page.images.length), fails: (page) => page.images.some((image) => image.alt === null), title: "Some images have no alt attribute", observation: "An alt attribute was not parsed for some images in the returned content. The correct alternative depends on the image's purpose.", why: "Informative images need an equivalent text alternative; purely decorative images usually need an empty alternative.", action: "Review the purpose of each affected image, add meaningful alternatives where needed and mark decorative images appropriately.", verification: "Inspect the rendered accessibility tree and check the page with images unavailable and with a screen reader.", detail: (page) => `${page.images.filter((image) => image.alt === null).length} of ${page.images.length} parsed images have no alt attribute. Example: ${page.images.find((image) => image.alt === null)?.src.slice(0, 170)}.`, confidence: "high" });
+  check({ code: "html-language", category: "accessibility", weight: 1, score: false, scope: pages, fails: (page) => !page.language.trim(), title: "Document language was not declared", observation: "The returned document did not declare a language on its root element.", why: "A declared document language helps assistive technology pronounce text appropriately.", action: "Declare the primary document language and mark passages in other languages where needed.", verification: "Inspect the rendered root language and verify appropriate pronunciation with assistive technology.", detail: (page) => `No root lang value parsed; ${page.fetchedAt}.` });
+  const textInputs = (page: PageObservation) => page.forms.flatMap((form) => form.inputs).filter((field) => !["hidden", "submit", "button", "reset", "image"].includes(field.type));
+  check({ code: "form-label-review", category: "accessibility", weight: 1, score: false, scope: pages.filter((page) => textInputs(page).length), fails: (page) => textInputs(page).some((field) => !field.label.trim()), title: "Review input labels in sampled forms", observation: "The HTML collector did not identify a label for some fields. Accessible names supplied by rendering or other markup need manual confirmation.", why: "Visitors need a persistent and programmatically associated description of each field's purpose.", action: "Inspect each affected control's computed accessible name. Add a visible associated label where appropriate; do not rely on placeholder text alone.", verification: "Review the rendered accessibility tree, navigate with a keyboard and check field names with a screen reader.", detail: (page) => `No parsed label signal for: ${textInputs(page).filter((field) => !field.label.trim()).map((field) => field.name || `(unnamed ${field.type})`).slice(0, 8).join(", ")}.`, type: "manual_review", confidence: "medium" });
+  if (pages.length) finding({ code: "accessibility-manual-journey", category: "accessibility", type: "manual_review", title: "Complete a human accessibility review", severity: "info", confidence: "high", observation: "The audit observes returned content and any separately labelled automated samples. Keyboard use, focus, dynamic states and screen-reader task completion were not tested.", why: "Automated checks cannot establish accessibility conformance or a usable end-to-end journey.", action: "Review navigation, forms, focus order, error messages, zoom and dynamic states with keyboard and assistive technology users.", verification: "Complete the main customer task using a keyboard and screen reader, including validation and confirmation states.", effort: "medium", evidence: evidence(pages.slice(0, 3), (page) => `Collection mode: ${page.rendered ? "rendered content" : "HTML only"}; no interaction test performed.`), affectedCount: pages.length, checkedCount: pages.length });
+  check({ code: "mobile-viewport", category: "mobile", weight: 1, score: false, scope: pages, fails: (page) => !page.viewport.trim() || !/width\s*=\s*device-width/i.test(page.viewport), title: "Review the mobile viewport setting", observation: "A device-width viewport value was not observed in some returned pages.", why: "A suitable viewport is one foundation of responsive layout; it does not prove mobile usability.", action: "Review the viewport setting and then test the actual layout, navigation and form controls on narrow screens.", verification: "Open the page on mobile-sized viewports and verify readable content, usable controls and no unintended horizontal overflow.", detail: (page) => `Parsed viewport: ${page.viewport || "not observed"}; no layout or tap-target measurements were made.`, confidence: "high" });
+
+  for (const run of measured) {
+    const slow = run.scores?.performance !== null && run.scores?.performance !== undefined && run.scores.performance < 50;
+    if (slow || (run.metrics?.lcpMs ?? 0) > 4000 || (run.metrics?.cls ?? 0) > 0.25) {
+      finding({ code: `lab-performance-${run.device}-${observationKey(run.url)}`, category: "performance", title: `Review the ${run.device} laboratory performance sample`, type: "issue", severity: "medium", confidence: "high", observation: "A measured laboratory run reported a low performance score or a poor sampled loading/stability metric. Laboratory results vary and describe this URL and device configuration.", why: "Slow loading or unstable content may make this sampled page harder to use.", action: "Use the attached sample diagnostics to identify the largest improvement, then retest the same URL and device. Do not treat laboratory TBT as real-user INP.", verification: "Repeat controlled laboratory runs and review real-user Core Web Vitals separately when sufficient field data exists.", effort: "medium", evidence: [{ url: run.url, detail: `${run.device}; Lighthouse ${run.lighthouseVersion ?? "version not supplied"}; ${run.fetchedAt}; performance ${run.scores?.performance ?? "unavailable"}/100; LCP ${run.metrics?.lcpMs ?? "unavailable"} ms; CLS ${run.metrics?.cls ?? "unavailable"}; TBT ${run.metrics?.tbtMs ?? "unavailable"} ms. ${run.diagnostics?.slice(0, 3).map((item) => `${item.title}: ${item.detail}`).join(" ") ?? ""}` }], affectedCount: 1, checkedCount: 1 });
+    }
+  }
+  if (fieldPerformance.status === "measured" && ((fieldPerformance.lcpMs ?? 0) > 2500 || (fieldPerformance.inpMs ?? 0) > 200 || (fieldPerformance.cls ?? 0) > 0.1)) finding({ code: "field-core-web-vitals", category: "performance", title: "Review the reported real-user experience", type: "issue", severity: "medium", confidence: "high", observation: `The supplied ${fieldPerformance.scope ?? "unspecified-scope"} field sample includes at least one metric outside its good threshold. Origin data is not a measurement of every page.`, why: "Field data describes actual users in the supplied reporting window and complements laboratory diagnostics.", action: "Review the reported scope and date range, diagnose affected journeys and monitor the same field metrics after changes.", verification: "Compare the same URL/origin field metrics over a subsequent eligible reporting window; keep field and laboratory measurements separate.", effort: "medium", evidence: [{ url: fieldPerformance.url ?? input.url, detail: `Scope: ${fieldPerformance.scope ?? "not specified"}; ${fieldPerformance.startDate ?? "start unknown"} to ${fieldPerformance.endDate ?? "end unknown"}; LCP ${fieldPerformance.lcpMs ?? "unavailable"} ms; INP ${fieldPerformance.inpMs ?? "unavailable"} ms; CLS ${fieldPerformance.cls ?? "unavailable"}.` }], affectedCount: 1, checkedCount: 1 });
+
+  if (pages.length && context.englishContent) {
+    const offering = capabilities.find((item) => item.code === "service_clarity")!;
+    if (["b2b_service", "local_service"].includes(context.businessType) && offering.state === "not_observed") finding({ code: "offering-clarity-review", category: "content", type: "opportunity", title: "Clarify who the service is for", severity: "low", confidence: "medium", observation: "A clear service-offering signal was not observed in the readable checked content. This is a scoped content observation, not a judgment of the business.", why: "Visitors need to understand the offering and its relevance before choosing a next step.", action: "Review the actual pages and state the service, intended customer, scope and useful next step in clear language.", verification: "Ask a prospective customer to explain the service and next step after reading the page; confirm dynamically rendered content separately.", effort: "small", evidence: offering.evidence, affectedCount: context.pages.length, checkedCount: context.pages.length });
+    const enquiry = capabilities.find((item) => item.code === "service_enquiries")!;
+    if (enquiry.state === "not_observed" && ["enquiry", "demo", "booking"].includes(context.mainTask)) finding({ code: "customer-contact-route", category: "conversion", type: "opportunity", title: "Make the next customer action clear", severity: "medium", confidence: "medium", observation: `The supported task is ${context.mainTask}, but no suitable enquiry route was observed in the checked public content. Unchecked or dynamic content may supply one.`, why: "A customer who understands the offer still needs a practical next step.", action: "Confirm the intended route, reuse an existing suitable tool where available and make the next action discoverable on relevant pages.", verification: "An authorized person should complete the actual journey and confirm receipt and any confirmation message.", effort: "medium", evidence: enquiry.evidence, affectedCount: context.pages.length, checkedCount: context.pages.length });
+    if (pages.some((page) => page.forms.length)) finding({ code: "form-delivery-manual", category: "conversion", type: "manual_review", title: "Verify the enquiry reaches the right person", severity: "info", confidence: "high", observation: "Public forms were observed. The audit did not submit them or verify delivery, validation, consent handling or response time.", why: "A visible form does not establish a working business handoff.", action: "With permission, test the important form journeys using non-sensitive test data and confirm the recipient, confirmation and error states.", verification: "Confirm a test enquiry reaches the agreed recipient and produces the appropriate accessible confirmation and response process.", effort: "small", evidence: evidence(pages.filter((page) => page.forms.length), (page) => `${page.forms.length} public forms parsed; no submissions performed.`), affectedCount: pages.filter((page) => page.forms.length).length, checkedCount: pages.length });
+  }
+
+  const categories: CategorySummary[] = [
+    scoreCategory("technical", results, `Scoped to ${input.pages.length} requested URLs and ${checkedDestinations.length} checked link instances. Blocked/failed requests without HTTP responses are unknown.`),
+    scoreCategory("seo", results, `Initial ${htmlOnly ? "HTML" : "rendered-content"} foundations on ${pages.length} successful pages. Search ranking, index coverage and content quality are not scored.`),
+    { category: "performance", label: CATEGORY_LABELS.performance, score: null, assessed: measured.length, applicable: performance.length, passed: 0, coverage: measured.length ? "limited" : "unavailable", note: measured.length ? `${measured.length} laboratory URL/device runs are shown individually below; no aggregate website performance score is calculated. Field data is separately labelled by scope and date.` : "No successful laboratory measurements are available. Loading speed cannot be inferred from HTML. Field-data availability is reported separately." },
+    { category: "accessibility", label: CATEGORY_LABELS.accessibility, score: null, assessed: pages.length, applicable: input.pages.length, passed: 0, coverage: pages.length ? "limited" : "unavailable", note: "Returned HTML signals and any separately labelled automated samples only. No WCAG conformance claim; keyboard, focus, visual contrast and screen-reader journeys require human review." },
+    { category: "mobile", label: CATEGORY_LABELS.mobile, score: null, assessed: pages.length, applicable: input.pages.length, passed: 0, coverage: pages.length ? "limited" : "unavailable", note: "Viewport metadata only. Responsive layout, tap targets, visual overflow and mobile task completion were not measured." },
+    { category: "content", label: CATEGORY_LABELS.content, score: null, assessed: context.englishContent ? context.pages.length : 0, applicable: input.pages.length, passed: 0, coverage: context.englishContent && context.pages.length ? "limited" : "unavailable", note: context.englishContent ? "Qualitative signals from readable checked pages; claims, credentials, authenticity and editorial accuracy were not verified." : "Insufficient readable English content for the current content rulebook. Human language review is required; no missing-content conclusions are drawn." },
+    { category: "conversion", label: CATEGORY_LABELS.conversion, score: null, assessed: context.englishContent ? context.pages.length : 0, applicable: input.pages.length, passed: 0, coverage: context.englishContent && context.pages.length ? "limited" : "unavailable", note: "Public route discovery only. Forms, checkout, bookings, delivery, conversion rate and revenue were not tested or inferred." },
+  ];
+  const limitations = [...new Set([
+    ...(input.limitations ?? []),
+    `${pages.length} successful public pages were checked from ${input.pages.length} requested URLs. This is a bounded sample; unchecked pages and authenticated areas are outside the report.`,
+    ...(htmlOnly ? ["HTML collection does not render JavaScript. Dynamic content, visual layout and client-rendered features may be missing from observations."] : []),
+    "Not observed means not found within the returned checked content, not proof that a capability is absent from the business.",
+    "Anonymous assessment answers are respondent-reported; website ownership and internal business facts are not independently verified.",
+    "No form, purchase or booking was submitted. No target website changes, integrations, module activation or billing occur.",
+    ...(!measured.length ? ["Laboratory performance measurement was unavailable; no loading speed grade is assigned."] : []),
+    ...(fieldPerformance.status === "unavailable" ? [`Real-user Core Web Vitals unavailable: ${fieldPerformance.reason ?? "no eligible field sample returned"}`] : []),
+    ...(!context.englishContent ? ["The current content and feature rulebook supports English readable content. Other-language content needs a human review."] : []),
+    ...(!["b2b_service", "local_service"].includes(context.businessType) ? ["This business type receives general checks. Specialist checkout, clinical, inventory, learning and publishing workflows are outside the launch rulebooks."] : []),
+    `Deterministic checks ${CHECKS_VERSION}; catalog ${CATALOG_VERSION}; rulebook ${RULEBOOK_VERSION}; industry packs ${INDUSTRY_PACK_VERSION}. No AI model was used and no feature is labelled a current trend.`,
+  ])];
+  const severity = { high: 0, medium: 1, low: 2, info: 3 };
+  findings.sort((left, right) => severity[left.severity] - severity[right.severity]);
+  const issueCount = findings.filter((item) => item.type === "issue").length;
+  return {
+    version: AUDIT_VERSION, generatedAt: new Date().toISOString(), businessType: context.businessType, mainTask: context.mainTask,
+    specialistCoverage: ["b2b_service", "local_service"].includes(context.businessType) ? "specialist" : "general",
+    summary: pages.length ? `${pages.length} public ${pages.length === 1 ? "page was" : "pages were"} successfully checked. ${issueCount} grouped ${issueCount === 1 ? "issue" : "issues"} and ${growth.recommendations.length} contextual ${growth.recommendations.length === 1 ? "improvement" : "improvements"} are supported within this scope. Review the evidence and unknowns before commissioning changes.` : "The requested public content could not be assessed. No website-health grade or missing-feature conclusion is available. Review collection details and any respondent-reported business needs separately.",
+    facts: context.facts, categories, findings, capabilities, recommendations: growth.recommendations, readiness: growth.readiness,
+    pages: input.pages, performance, fieldPerformance, limitations, collectionMode: htmlOnly ? "html" : "rendered", explanationMode: "rules",
+  };
+}

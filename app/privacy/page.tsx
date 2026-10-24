@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const EFFECTIVE_DATE = "1 June 2025";
-const UPDATED_DATE = "26 May 2026";
+const UPDATED_DATE = "24 October 2026";
 
 const sections = [
   {
@@ -27,7 +27,7 @@ const sections = [
       },
       {
         sub: "Cookies",
-        body: "Our website uses only essential functional cookies required for the site to operate. We do not use advertising cookies or cross-site tracking cookies. You can disable cookies in your browser settings; this will not affect your ability to use the site.",
+        body: "Functional cookies support protected business tools and private website-audit reports. The audit cookie lasts up to 30 days and identifies the browser that can access its reports. Clearing or blocking this cookie removes access to those reports. Website analytics operate as described in the information and service-provider sections below.",
       },
     ],
   },
@@ -120,8 +120,26 @@ const sections = [
     ],
   },
   {
+    id: "website-audit",
+    title: "8. Website Audits and Business Assessments",
+    content: [
+      {
+        sub: "Public website analysis",
+        body: "When you request an audit, we collect the submitted public website address and bounded observations such as page metadata, link destinations, response statuses and short content excerpts. We do not log in to the target website, submit its forms, or collect its customer records. Reports and optional business answers are stored in our configured PostgreSQL database for up to 30 days. Reports are private to the browser that created them unless you deliberately share a downloaded copy.",
+      },
+      {
+        sub: "Optional answers and providers",
+        body: "You may skip the business questionnaire. Answers are treated as respondent statements, not verified ownership or operating facts. The default assessment uses deterministic rules. Where enabled, Google PageSpeed Insights and CrUX receive the public website address for measurement; an optional Google Gemini explanation service receives limited structured recommendations and evidence summaries, excluding contact details, raw page bodies and credentials. Unconfigured services are not used. Hosting and database providers process stored report data under their applicable service policies.",
+      },
+      {
+        sub: "Enquiries, retention and deletion",
+        body: "Only when you submit an implementation enquiry do we associate your contact details with the selected assessment snapshot and send a notification through Resend when delivery is enabled. This is an enquiry, not a purchase or software activation. Submitted enquiries may be retained for up to 24 months to respond and follow up. You can delete an audit from its report page; deletion cancels pending work and removes its observations and answers. A separately submitted enquiry is retained for its stated purpose and can be deleted by contacting us. Short-lived hashed browser and network identifiers enforce free-audit limits without recording raw IP addresses in the audit database.",
+      },
+    ],
+  },
+  {
     id: "changes",
-    title: "8. Changes to This Policy",
+    title: "9. Changes to This Policy",
     content: [
       {
         sub: "",
@@ -131,7 +149,7 @@ const sections = [
   },
   {
     id: "contact",
-    title: "9. Contact Us",
+    title: "10. Contact Us",
     content: [
       {
         sub: "",
