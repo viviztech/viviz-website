@@ -5,6 +5,7 @@ import { analyzeWebsite } from "./analyze";
 import { analyzeAuditWithGemini } from "./deep-analysis";
 import { auditPool, auditTransaction } from "./database";
 import { auditLimits } from "./config";
+import { getAuditExecutionConfig } from "./execution";
 import { AuditError } from "./errors";
 import {
   AUDIT_VERSION, EMPTY_ASSESSMENT, PAGE_LIMIT,
@@ -83,6 +84,14 @@ async function ownedLocked(client: PoolClient, id: string, owner: string | null)
 
 export async function workerOnline(): Promise<boolean> {
   if (process.env.AUDIT_ENABLED === "false") return false;
+  const execution = getAuditExecutionConfig();
+  if (!execution) return false;
+  if (execution.mode === "netlify") {
+    // Background invocations have no continuously running process to heartbeat.
+    // Still verify that the persistent queue schema is accessible before accepting work.
+    await auditPool().query("SELECT id FROM website_audits LIMIT 0");
+    return true;
+  }
   const result = await auditPool().query("SELECT 1 FROM website_audit_workers WHERE last_seen_at > now() - INTERVAL '90 seconds' LIMIT 1");
   return result.rowCount !== 0;
 }
@@ -90,7 +99,8 @@ export async function workerOnline(): Promise<boolean> {
 export async function createQueuedAudit(input: {
   url: string; owner: string; ipHash: string; idempotencyKey: string; assessment?: BusinessAssessment;
 }): Promise<AuditView> {
-  if (process.env.AUDIT_ENABLED === "false") throw new AuditError("Website analysis is temporarily unavailable. Please try again shortly.", 503);
+  const execution = getAuditExecutionConfig();
+  if (process.env.AUDIT_ENABLED === "false" || !execution) throw new AuditError("Website analysis is temporarily unavailable. Please try again shortly.", 503);
   const assessment = input.assessment ?? EMPTY_ASSESSMENT;
   const digest = requestDigest({ url: input.url, assessment });
   return auditTransaction(async (client) => {
@@ -102,8 +112,10 @@ export async function createQueuedAudit(input: {
       if (replay.rows[0].request_hash !== digest) throw new AuditError("That submission was already used. Start a fresh request.", 409);
       return view(replay.rows[0]);
     }
-    const worker = await client.query("SELECT 1 FROM website_audit_workers WHERE last_seen_at > now() - INTERVAL '90 seconds' LIMIT 1");
-    if (!worker.rowCount) throw new AuditError("Website analysis is temporarily unavailable. Please try again shortly.", 503);
+    if (execution.mode === "standalone") {
+      const worker = await client.query("SELECT 1 FROM website_audit_workers WHERE last_seen_at > now() - INTERVAL '90 seconds' LIMIT 1");
+      if (!worker.rowCount) throw new AuditError("Website analysis is temporarily unavailable. Please try again shortly.", 503);
+    }
     const limits = auditLimits();
     const totals = await client.query<{ own: string; ip: string; total: string }>(
       "SELECT count(*) FILTER (WHERE owner_hash=$1) AS own, count(*) FILTER (WHERE ip_hash=$2) AS ip, count(*) AS total FROM website_audits WHERE created_at >= now() - INTERVAL '24 hours'", [input.owner, input.ipHash],
@@ -221,7 +233,8 @@ export async function heartbeatWorker(workerId: string): Promise<void> {
   await auditPool().query("INSERT INTO website_audit_workers(id,last_seen_at) VALUES ($1,now()) ON CONFLICT(id) DO UPDATE SET last_seen_at=now()", [workerId]);
 }
 
-export async function claimAudit(): Promise<{ id: string; url: string; leaseToken: string } | null> {
+export async function claimAudit(auditId?: string): Promise<{ id: string; url: string; leaseToken: string } | null> {
+  if (auditId !== undefined && !isAuditId(auditId)) return null;
   return auditTransaction(async (client) => {
     await client.query("SELECT pg_advisory_xact_lock(74021902)");
     const active = await client.query<{ count: string }>("SELECT count(*) FROM website_audits WHERE status='running' AND lease_expires_at>now()");
@@ -229,11 +242,28 @@ export async function claimAudit(): Promise<{ id: string; url: string; leaseToke
     const leaseToken = randomUUID();
     const result = await client.query<AuditRow>(
     `UPDATE website_audits SET status='running',stage='discovering',lease_token=$1,lease_expires_at=now()+INTERVAL '90 seconds',started_at=COALESCE(started_at,now()),attempts=attempts+1,updated_at=now()
-     WHERE id=(SELECT id FROM website_audits WHERE expires_at>now() AND attempts<2 AND (status='queued' OR (status='running' AND lease_expires_at<now())) ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING *`, [leaseToken],
+     WHERE id=(SELECT id FROM website_audits WHERE ($2::uuid IS NULL OR id=$2::uuid) AND expires_at>now() AND attempts<2 AND (status='queued' OR (status='running' AND lease_expires_at<now())) ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING *`, [leaseToken, auditId ?? null],
   );
     const row = result.rows[0];
     return row ? { id: row.id, url: row.url, leaseToken } : null;
   });
+}
+
+const dispatchableAuditPredicate = "expires_at>now() AND created_at>now()-INTERVAL '15 minutes' AND attempts<2 AND (status='queued' OR (status='running' AND lease_expires_at<now()))";
+
+/** Return identifiers only; callbacks retrieve target details after claiming their own job. */
+export async function listDispatchableAuditIds(limit = 2): Promise<string[]> {
+  const boundedLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 10) : 2;
+  const result = await auditPool().query<{ id: string }>(
+    `SELECT id FROM website_audits WHERE ${dispatchableAuditPredicate} ORDER BY created_at LIMIT $1`, [boundedLimit],
+  );
+  return result.rows.map((row) => row.id);
+}
+
+export async function hasDispatchableAudit(id: string): Promise<boolean> {
+  if (!isAuditId(id)) return false;
+  const result = await auditPool().query(`SELECT 1 FROM website_audits WHERE id=$1 AND ${dispatchableAuditPredicate} LIMIT 1`, [id]);
+  return result.rowCount !== 0;
 }
 
 export async function renewAuditLease(id: string, leaseToken: string): Promise<boolean> {

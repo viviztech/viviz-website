@@ -3,6 +3,7 @@ import { normalizeAuditUrl, validatePublicUrl } from "@/lib/website-audit/networ
 import { createAuditSchema } from "@/lib/website-audit/validation";
 import { customerAuditJson, auditErrorResponse, getAuditOwner, hashAuditCredential, readAuditBody, requireSameOrigin } from "@/lib/website-audit/http";
 import { AuditError } from "@/lib/website-audit/errors";
+import { dispatchAuditJob, requireAuditWorkerConnection } from "@/lib/website-audit/execution";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -17,7 +18,9 @@ export async function POST(request: Request) {
     const owner = (await getAuditOwner(true))!;
     const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "not-provided";
     const ipHash = hashAuditCredential(`audit-rate:${forwarded}`);
+    await requireAuditWorkerConnection();
     const audit = await createQueuedAudit({ url, owner, ipHash, idempotencyKey: data.idempotencyKey, assessment: data.assessment });
+    if (["queued", "running"].includes(audit.status)) await dispatchAuditJob(audit.id);
     return customerAuditJson(audit, 202);
   } catch (error) { return auditErrorResponse(error); }
 }

@@ -1,10 +1,12 @@
 FROM node:24-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund
+RUN npm ci --include=dev --no-audit --no-fund
 COPY tsconfig.json ./
+COPY schema.sql ./
 COPY lib ./lib
 COPY scripts ./scripts
 COPY migrations ./migrations
+ENV NODE_ENV=production
 USER node
-CMD ["npm", "run", "audit:worker"]
+CMD ["sh", "-c", "npm run db:migrate && exec node --conditions=react-server --import tsx scripts/audit-worker.ts"]

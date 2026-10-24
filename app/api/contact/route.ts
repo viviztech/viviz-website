@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const TO_EMAIL = "viviztechnologies@gmail.com";
 
 export async function POST(req: NextRequest) {
@@ -15,6 +14,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const apiKey = process.env.RESEND_API_KEY?.trim();
+    if (!apiKey) return NextResponse.json({ error: "The contact service is temporarily unavailable. Please email online@viviz.in." }, { status: 503 });
+    const resend = new Resend(apiKey);
     const { error } = await resend.emails.send({
       from: "Viviz Website <onboarding@resend.dev>",
       to: TO_EMAIL,

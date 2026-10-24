@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "test:audit": "node --conditions=react-server --import tsx --test tests/*.test.ts",
+    "db:migrate": "node --conditions=react-server --import tsx scripts/database-migrate.ts",
     "audit:migrate": "node --conditions=react-server --import tsx scripts/audit-migrate.ts",
+    "audit:check": "node --conditions=react-server --import tsx scripts/audit-check.ts",
+    "audit:build:netlify": "node scripts/build-audit-netlify.mjs",
     "audit:worker": "node --conditions=react-server --import tsx scripts/audit-worker.ts"
   },
   "dependencies": {
@@ -34,6 +37,7 @@
     "@types/pg": "^8.21.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "playwright": "^1.64.1",

@@ -1,0 +1,96 @@
+# Coolify Git Application, Compose build strategy. Create a native PostgreSQL
+# resource first and enable "Connect to predefined network" for this application.
+# Set DATABASE_URL to that resource's private/internal URL after restoring Neon.
+x-audit-environment: &audit-environment
+  NODE_ENV: production
+  DATABASE_URL: ${DATABASE_URL:?}
+  AUDIT_ENABLED: ${AUDIT_ENABLED:-true}
+  AUDIT_EXECUTION_MODE: standalone
+  AUDIT_SESSION_DAILY_LIMIT: ${AUDIT_SESSION_DAILY_LIMIT:-3}
+  AUDIT_IP_DAILY_LIMIT: ${AUDIT_IP_DAILY_LIMIT:-12}
+  AUDIT_GLOBAL_DAILY_LIMIT: ${AUDIT_GLOBAL_DAILY_LIMIT:-5}
+  AUDIT_MAX_CONCURRENT: ${AUDIT_MAX_CONCURRENT:-2}
+  AUDIT_ASSESSMENT_LIMIT: ${AUDIT_ASSESSMENT_LIMIT:-6}
+  AUDIT_AI_ENABLED: ${AUDIT_AI_ENABLED:-false}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  AUDIT_AI_MODEL: ${AUDIT_AI_MODEL:-gemini-3.8-flash}
+  AUDIT_AI_DAILY_LIMIT: ${AUDIT_AI_DAILY_LIMIT:-20}
+  AUDIT_AI_MINUTE_LIMIT: ${AUDIT_AI_MINUTE_LIMIT:-2}
+
+x-worker-build: &worker-build
+  context: .
+  dockerfile: Dockerfile.audit-worker
+
+services:
+  migrate:
+    build: *worker-build
+    command: ["npm", "run", "db:migrate"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?}
+    restart: "no"
+    # Coolify strips this extension; it excludes a completed one-shot from health.
+    exclude_from_hc: true
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-https://viviz.in}
+        NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: ${NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:-}
+    init: true
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      <<: *audit-environment
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-https://viviz.in}
+      INVOICE_PASSWORD: ${INVOICE_PASSWORD:?}
+      INVOICE_SESSION_SECRET: ${INVOICE_SESSION_SECRET:?}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SABPAISA_MERCHANT_ID: ${SABPAISA_MERCHANT_ID:-}
+      SABPAISA_API_KEY: ${SABPAISA_API_KEY:-}
+      SABPAISA_SECRET_KEY: ${SABPAISA_SECRET_KEY:-}
+      SABPAISA_ENV: ${SABPAISA_ENV:-uat}
+    expose:
+      - "3000"
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  worker:
+    build: *worker-build
+    init: true
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      <<: *audit-environment
+      AUDIT_PAGESPEED_ENABLED: ${AUDIT_PAGESPEED_ENABLED:-false}
+      PAGESPEED_API_KEY: ${PAGESPEED_API_KEY:-}
+      AUDIT_CRUX_ENABLED: ${AUDIT_CRUX_ENABLED:-false}
+      CRUX_API_KEY: ${CRUX_API_KEY:-}
+      AUDIT_SEND_EMAIL: ${AUDIT_SEND_EMAIL:-false}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      AUDIT_FROM_EMAIL: ${AUDIT_FROM_EMAIL:-Viviz Website <onboarding@resend.dev>}
+      AUDIT_TO_EMAIL: ${AUDIT_TO_EMAIL:-viviztechnologies@gmail.com}
+    stop_grace_period: 11m
+    healthcheck:
+      test: ["CMD", "node", "--conditions=react-server", "--import", "tsx", "scripts/audit-check.ts"]
+      interval: 30s
+      timeout: 20s
+      start_period: 90s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -48,3 +48,7 @@ next-env.d.ts
 # Local audit verification artifacts and package cache
 /output/
 /.tmp/npm-cache/
+/.netlify/
+/.tmp/netlify-cli/
+/.tmp/netlify-cli-temp/
+/.tmp/tsx-cache-backup/

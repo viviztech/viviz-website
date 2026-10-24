@@ -1,0 +1,27 @@
+name: viviz-audit
+
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.audit-worker
+    init: true
+    restart: unless-stopped
+    # Create this private file on the host; do not commit production secrets.
+    env_file:
+      - .env.audit-worker
+    environment:
+      NODE_ENV: production
+    # A running scan may finish before shutdown; its lease bounds execution.
+    stop_grace_period: 11m
+    healthcheck:
+      test: ["CMD", "node", "--conditions=react-server", "--import", "tsx", "scripts/audit-check.ts"]
+      interval: 30s
+      timeout: 20s
+      start_period: 90s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

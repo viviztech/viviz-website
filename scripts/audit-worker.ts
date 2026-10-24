@@ -1,6 +1,6 @@
 import { loadEnvConfig } from "@next/env";
 import { randomUUID } from "node:crypto";
-import { setTimeout as delay } from "node:timers/promises";
+import { runWorkerRuntime } from "../lib/website-audit/worker-runtime";
 
 async function main() {
   loadEnvConfig(process.cwd());
@@ -9,35 +9,31 @@ async function main() {
   const { deliverAuditNotification } = await import("../lib/website-audit/notifications");
   const { auditPool } = await import("../lib/website-audit/database");
   const workerId = randomUUID();
+  const pool = auditPool();
   let stopping = false;
-  process.on("SIGINT", () => { stopping = true; });
-  process.on("SIGTERM", () => { stopping = true; });
-  await heartbeatWorker(workerId);
-  await expireAuditData();
-  console.log("Website audit worker ready. Durable jobs are stored in PostgreSQL.");
-  const pulse = setInterval(() => { void heartbeatWorker(workerId).catch(() => console.error("Audit worker heartbeat unavailable.")); }, 15000);
-  pulse.unref();
-  let lastCleanup = Date.now();
+  const stop = () => { stopping = true; };
+  process.on("SIGINT", stop);
+  process.on("SIGTERM", stop);
   try {
-    do {
-      try {
-        if (Date.now() - lastCleanup > 60000) { await expireAuditData(); lastCleanup = Date.now(); }
-        const worked = await runAuditWorkerOnce();
-        await deliverAuditNotification();
-        if (!worked) await delay(2000);
-      } catch {
-        console.error("Audit worker task failed; durable work will be retried.");
-        await delay(5000);
-      }
-    } while (!stopping && !process.argv.includes("--once"));
+    await runWorkerRuntime({
+      cleanup: expireAuditData,
+      heartbeat: () => heartbeatWorker(workerId),
+      runJob: runAuditWorkerOnce,
+      deliverNotification: deliverAuditNotification,
+      removeHeartbeat: async () => { await pool.query("DELETE FROM website_audit_workers WHERE id=$1", [workerId]); },
+      close: () => pool.end(),
+      log: (event) => {
+        if (event === "ready") console.log("audit_worker_ready");
+        else console.error(`audit_worker_${event}`);
+      },
+    }, { once: process.argv.includes("--once"), shouldStop: () => stopping });
   } finally {
-    clearInterval(pulse);
-    await auditPool().query("DELETE FROM website_audit_workers WHERE id=$1", [workerId]);
-    await auditPool().end();
+    process.off("SIGINT", stop);
+    process.off("SIGTERM", stop);
   }
 }
 
 void main().catch(() => {
-  console.error("Audit worker could not start. Check database configuration and run audit:migrate.");
+  console.error("audit_worker_startup_or_shutdown_failed");
   process.exitCode = 1;
 });

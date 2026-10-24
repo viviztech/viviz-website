@@ -1,5 +1,5 @@
 export const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ?? "https://viviz-website.vercel.app";
+  process.env.NEXT_PUBLIC_BASE_URL ?? "https://viviz.in";
 
 export const COMPANY_NAME = "Viviz Technologies";
 export const COMPANY_EMAIL = "online@viviz.in";

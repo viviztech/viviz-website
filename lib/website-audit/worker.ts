@@ -2,9 +2,9 @@ import "server-only";
 import { crawlWebsite } from "./crawler";
 import { claimAudit, checkpointAudit, renewAuditLease, finishAudit, failAudit } from "./repository";
 
-export async function runAuditWorkerOnce(): Promise<boolean> {
+export async function runAuditWorkerOnce(auditId?: string): Promise<boolean> {
   if (process.env.AUDIT_ENABLED === "false") return false;
-  const job = await claimAudit();
+  const job = await claimAudit(auditId);
   if (!job) return false;
   let active = true;
   let checking = false;

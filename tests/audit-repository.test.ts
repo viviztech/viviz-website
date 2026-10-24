@@ -33,12 +33,18 @@ test("local Postgres audit repository integration", { skip: process.env.AUDIT_DB
     AUDIT_IP_DAILY_LIMIT: process.env.AUDIT_IP_DAILY_LIMIT,
     AUDIT_GLOBAL_DAILY_LIMIT: process.env.AUDIT_GLOBAL_DAILY_LIMIT,
     AUDIT_AI_ENABLED: process.env.AUDIT_AI_ENABLED,
+    AUDIT_MAX_CONCURRENT: process.env.AUDIT_MAX_CONCURRENT,
+    AUDIT_EXECUTION_MODE: process.env.AUDIT_EXECUTION_MODE,
+    AUDIT_WORKER_URL: process.env.AUDIT_WORKER_URL,
+    AUDIT_WORKER_SECRET: process.env.AUDIT_WORKER_SECRET,
   };
   process.env.AUDIT_ENABLED = "true";
   process.env.AUDIT_SESSION_DAILY_LIMIT = "100";
   process.env.AUDIT_IP_DAILY_LIMIT = "1000";
   process.env.AUDIT_GLOBAL_DAILY_LIMIT = "10000";
   process.env.AUDIT_AI_ENABLED = "false";
+  process.env.AUDIT_MAX_CONCURRENT = "2";
+  process.env.AUDIT_EXECUTION_MODE = "standalone";
   const newOwner = () => {
     const owner = createHash("sha256").update(`${runId}:${randomUUID()}`).digest("hex");
     owners.add(owner);
@@ -89,6 +95,103 @@ test("local Postgres audit repository integration", { skip: process.env.AUDIT_DB
         assert.equal(Number(rows.rows[0].count), 0);
       } finally { process.env.AUDIT_ENABLED = "true"; }
       assert.equal(await repository.workerOnline(), true);
+    });
+
+    await t.test("configured background execution accepts work without a heartbeat while retaining quotas", async () => {
+      const owner = newOwner();
+      process.env.AUDIT_EXECUTION_MODE = "netlify";
+      process.env.AUDIT_WORKER_URL = "https://viviz-audit-fixture.netlify.app/.netlify/functions/audit";
+      process.env.AUDIT_WORKER_SECRET = "a".repeat(64);
+      process.env.AUDIT_SESSION_DAILY_LIMIT = "1";
+      await pool.query("DELETE FROM website_audit_workers WHERE id=$1", [workerId]);
+      try {
+        const online = await pool.query("SELECT 1 FROM website_audit_workers WHERE last_seen_at>now()-INTERVAL '90 seconds'");
+        assert.equal(online.rowCount, 0, "Run repository tests without a separate active local worker.");
+        assert.equal(await repository.workerOnline(), true);
+        const audit = await create(owner);
+        assert.equal(audit.status, "queued");
+        await assert.rejects(create(owner), status(429));
+        await repository.cancelOwnedAudit(audit.id, owner);
+      } finally {
+        process.env.AUDIT_SESSION_DAILY_LIMIT = "100";
+        process.env.AUDIT_EXECUTION_MODE = "standalone";
+        delete process.env.AUDIT_WORKER_URL;
+        delete process.env.AUDIT_WORKER_SECRET;
+        await repository.heartbeatWorker(workerId);
+      }
+    });
+
+    await t.test("incomplete or unsupported execution configuration refuses work before inserting it", async () => {
+      const owner = newOwner();
+      try {
+        for (const configuration of [
+          { mode: "netlify", url: "", secret: "a".repeat(64) },
+          { mode: "netlify", url: "https://viviz-audit-fixture.netlify.app/.netlify/functions/audit", secret: "short" },
+          { mode: "unsupported", url: "", secret: "" },
+        ]) {
+          process.env.AUDIT_EXECUTION_MODE = configuration.mode;
+          process.env.AUDIT_WORKER_URL = configuration.url;
+          process.env.AUDIT_WORKER_SECRET = configuration.secret;
+          assert.equal(await repository.workerOnline(), false);
+          await assert.rejects(create(owner), status(503));
+        }
+        const rows = await pool.query<{ count: string }>("SELECT count(*) FROM website_audits WHERE owner_hash=$1", [owner]);
+        assert.equal(Number(rows.rows[0].count), 0);
+      } finally {
+        process.env.AUDIT_EXECUTION_MODE = "standalone";
+        delete process.env.AUDIT_WORKER_URL;
+        delete process.env.AUDIT_WORKER_SECRET;
+      }
+    });
+
+    await t.test("background callbacks claim only their exact audit and cannot replay active or completed work", async () => {
+      const unrelatedOwner = newOwner();
+      const unrelated = await create(unrelatedOwner);
+      const target = await create();
+      await pool.query("UPDATE website_audits SET created_at=now()-INTERVAL '1 minute' WHERE id=$1", [unrelated.id]);
+      assert.equal(await repository.claimAudit("invalid-audit-id"), null);
+      assert.equal(await repository.claimAudit(randomUUID()), null);
+      const duplicates = await Promise.all(Array.from({ length: 4 }, () => repository.claimAudit(target.id)));
+      const claims = duplicates.filter((claim) => claim !== null);
+      assert.equal(claims.length, 1, "Concurrent callbacks must share one fenced claim.");
+      assert.equal(claims[0].id, target.id);
+      assert.equal((await repository.getOwnedAudit(unrelated.id, unrelatedOwner)).status, "queued");
+      assert.equal(await repository.claimAudit(target.id), null);
+      await repository.finishAudit(target.id, claims[0].leaseToken, collection);
+      assert.equal(await repository.claimAudit(target.id), null);
+      assert.equal((await repository.getOwnedAudit(unrelated.id, unrelatedOwner)).status, "queued");
+      await repository.cancelOwnedAudit(unrelated.id, unrelatedOwner);
+    });
+
+    await t.test("dispatch discovery returns bounded identifiers for pending or recoverable work only", async () => {
+      const queued = await create();
+      const recoverable = await create();
+      const active = await create();
+      const exhausted = await create();
+      const old = await create();
+      const expired = await create();
+      const completed = await seedReport();
+      await pool.query("UPDATE website_audits SET created_at=now()-INTERVAL '14 minutes' WHERE id=ANY($1::uuid[])", [[queued.id, recoverable.id]]);
+      await pool.query("UPDATE website_audits SET status='running',attempts=1,lease_token=$2,lease_expires_at=now()-INTERVAL '1 second',started_at=now()-INTERVAL '1 minute' WHERE id=$1", [recoverable.id, randomUUID()]);
+      await pool.query("UPDATE website_audits SET status='running',attempts=1,lease_token=$2,lease_expires_at=now()+INTERVAL '90 seconds',started_at=now() WHERE id=$1", [active.id, randomUUID()]);
+      await pool.query("UPDATE website_audits SET attempts=2 WHERE id=$1", [exhausted.id]);
+      await pool.query("UPDATE website_audits SET created_at=now()-INTERVAL '16 minutes' WHERE id=$1", [old.id]);
+      await pool.query("UPDATE website_audits SET expires_at=now()-INTERVAL '1 second' WHERE id=$1", [expired.id]);
+      assert.equal(await repository.hasDispatchableAudit(queued.id), true);
+      assert.equal(await repository.hasDispatchableAudit(recoverable.id), true);
+      const excluded = [active.id, exhausted.id, old.id, expired.id, completed.id];
+      for (const id of [...excluded, randomUUID(), "invalid-audit-id"]) assert.equal(await repository.hasDispatchableAudit(id), false);
+      const defaultIds = await repository.listDispatchableAuditIds();
+      assert.ok(defaultIds.length <= 2);
+      const ids = await repository.listDispatchableAuditIds(1000);
+      assert.ok(ids.length <= 10);
+      assert.ok(ids.includes(queued.id));
+      assert.ok(ids.includes(recoverable.id));
+      assert.ok(!ids.some((id) => excluded.includes(id)));
+      assert.ok(ids.every((id) => typeof id === "string" && /^[\da-f-]{36}$/i.test(id)));
+      assert.ok((await repository.listDispatchableAuditIds(Number.NaN)).length <= 2);
+      // Leave no active fixture lease for subsequent repository tests.
+      await pool.query("UPDATE website_audits SET status='canceled',lease_token=NULL,lease_expires_at=NULL WHERE id=ANY($1::uuid[])", [[queued.id, recoverable.id, active.id, exhausted.id, old.id, expired.id]]);
     });
 
     await t.test("ownership checks hide reports and mutations from a different browser", async () => {

@@ -1,0 +1,13 @@
+# This Netlify project hosts only the audit worker. The public website remains
+# independently deployed; no Next.js server is built by this configuration.
+[build]
+  command = "npm run audit:migrate && npm run audit:build:netlify"
+  publish = "netlify/public"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+[functions]
+  directory = "output/audit-worker/functions"
+  node_bundler = "esbuild"

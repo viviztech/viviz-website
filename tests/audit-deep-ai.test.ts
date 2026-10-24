@@ -168,7 +168,7 @@ test("deeper Gemini analysis is bounded, optional, grounded and uses mocked prov
       const manual = report.findings.find((item) => item.rule.split("@")[0] === "form-delivery-manual");
       assert.ok(manual, "Versioned manual form rule must be covered by this test.");
       for (const observation of ["The form sends every enquiry to the right person.", "Review confirms the booking feature is missing in the checked sample.", "The checked form is working perfectly for visitors.", "The checked form may help visitors contact the team."]) {
-        const explanation = { ...outputFor(report).findingExplanations[0], findingId: manual.id, observation };
+        const explanation: DeepAuditAnalysis["findingExplanations"][number] = { ...outputFor(report).findingExplanations[0], findingId: manual.id, observation };
         assert.equal(await analyzeAuditWithGemini(report, { reserve: reserved, fetch: async () => response({ ...outputFor(report), findingExplanations: [explanation] }) }), report, observation);
       }
       const validManual = { ...outputFor(report).findingExplanations[0], findingId: manual.id, observation: "A public form was observed in the checked sample, but the audit did not submit or test it." };

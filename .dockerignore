@@ -1,0 +1,27 @@
+# Allow only sources needed by the web and worker images. Local secrets,
+# .git, .tmp, output, node_modules and documentation stay outside the context.
+*
+!Dockerfile
+!Dockerfile.audit-worker
+!package.json
+!package-lock.json
+!tsconfig.json
+!next.config.ts
+!postcss.config.mjs
+!proxy.ts
+!schema.sql
+!app/
+!app/**
+!components/
+!components/**
+!public/
+!public/**
+!lib/
+!lib/**
+!scripts/
+!scripts/**
+!migrations/
+!migrations/**
+
+# Exclude environment files even if they appear inside an allowed source folder.
+**/.env*

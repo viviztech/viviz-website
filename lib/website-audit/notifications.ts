@@ -18,6 +18,9 @@ export async function deliverAuditNotification(): Promise<void> {
   if (!enquiry) return;
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
+    // Resend forwards request options to fetch. Bound the actual request so the
+    // scheduled free worker can finish and leave failed outbox entries retryable.
+    const sendOptions = { idempotencyKey: `audit-enquiry-${enquiry.id}`, signal: AbortSignal.timeout(8000) };
     const selected = [...enquiry.snapshot.recommendations, ...enquiry.snapshot.findings].map((item) => `- ${item.title}\n  ${item.action}`).join("\n\n");
     const response = await resend.emails.send({
       from: process.env.AUDIT_FROM_EMAIL ?? "Viviz Website <onboarding@resend.dev>",
@@ -25,7 +28,7 @@ export async function deliverAuditNotification(): Promise<void> {
       replyTo: enquiry.email,
       subject: `Website improvement enquiry from ${enquiry.name.replace(/[\r\n]/g, " ")}`,
       text: `Website improvement enquiry\n\nReference: ${enquiry.id}\nName: ${enquiry.name}\nEmail: ${enquiry.email}\nPhone: ${enquiry.phone || "Not provided"}\nWebsite: ${enquiry.snapshot.url}\n\n${enquiry.snapshot.summary}\n\nSelected improvements\n${selected || "General implementation discussion requested."}\n\nMessage\n${enquiry.message || "No additional message."}\n\nThe enquiry and selected assessment snapshot are retained in the private audit database.`,
-    }, { idempotencyKey: `audit-enquiry-${enquiry.id}` });
+    }, sendOptions);
     if (response.error) throw new Error("notification_failed");
     await auditPool().query("UPDATE website_audit_enquiries SET notification_status='sent' WHERE id=$1 AND notification_attempts=$2 AND notification_status='sending'", [enquiry.id, enquiry.notification_attempts]);
   } catch {
