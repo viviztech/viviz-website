@@ -4,7 +4,7 @@ The selected deployment moves the website, audit worker and PostgreSQL data to t
 
 The owner has configured dashboard DNS and HTTPS. `https://coolify.viviz.in` resolves to `187.127.178.143` with a trusted certificate; its unauthenticated `/api/health` returns 200 and authenticated Coolify API access (4.5.0) works. The token is stored only in ignored private local access configuration; no value is included here. The owner has no SSH access, so preparation uses the authenticated HTTPS API.
 
-An empty **Viviz Website** project (`p7snoy3td2uupcnbzon9pm1g`) and its **production** environment (`veg72ary2usrrwv4wzudosf4`) have been created on the existing server. No application, target database or deployment exists yet. The Neon source connection has been requested privately and remains pending. The production website's DNS has not been cut over; Vercel and Neon remain in place.
+The **Viviz Website** project (`p7snoy3td2uupcnbzon9pm1g`) and its **production** environment (`veg72ary2usrrwv4wzudosf4`) are created. The reviewed 39-file deployment change was pushed as commit `b628f68` to `deploy/coolify-hosting`; `main` is unchanged. Coolify application **viviz-website** (`yvvtdetv81ed1rkfluljzlum`) is registered for that branch with Compose path `/docker-compose.coolify.yml` and predefined networking enabled. Automatic and preview deployments are disabled, and no public domain is assigned. It has never been started; the pre-deployment API state `exited:unhealthy` is not a failed deployment result. No target database, data pull or deployment exists yet. The production website's DNS has not been cut over; Vercel and Neon remain in place.
 
 ## Dashboard HTTPS without SSH
 
@@ -37,6 +37,8 @@ In Domains, assign only `web` the value `https://viviz.in:3000`. The suffix rout
 ## Private configuration
 
 Enter secrets directly in Coolify's environment settings. Copy existing production values from the owner's settings; do not use local development credentials or print secrets in deployment logs.
+
+The production Vercel values are sensitive/write-only, including the database, staff, email, payment and Gemini settings. They cannot be recovered through the Vercel API. Obtain the required private values from the owner's original provider/account settings; do not extract them through the running application. The private `.env.coolify-migration` template is prepared and awaits the owner's Neon source connection and remaining settings. No secret values are documented here.
 
 | Variable | Migration requirement |
 | --- | --- |
@@ -87,4 +89,4 @@ If cutover fails before writes reopen, restore routing to the preserved old site
 
 ## Current verification
 
-Current verification passed **110 tests**, including database bootstrap/migration cases, TypeScript compilation and the full Next.js production build without runtime secrets. Earlier Netlify packaging checks remain historical verification of the unused alternative. Dashboard DNS/HTTPS and authenticated API access are verified, and the empty project/production environment are created. Docker is unavailable in this workspace, so neither new image has been built here and no deployment has run. The private Neon source connection, source inspection, target database/application creation, backup/restore rehearsal, remote deployment, production website HTTPS/DNS cutover and retirement of old hosting remain pending. The owner changed dashboard DNS; the agent has not cut over production website DNS or migrated its database.
+Current verification passed **110 tests**, including database bootstrap/migration cases, TypeScript compilation and the full Next.js production build without runtime secrets. Earlier Netlify packaging checks remain historical verification of the unused alternative. Dashboard DNS/HTTPS and authenticated API access are verified. The deployment branch is pushed and the project, environment and stopped application are registered. Docker is unavailable in this workspace, so neither new image has been built here and no deployment has run. Original private production settings, the Neon source connection/inspection, target database creation, backup/restore rehearsal, remote deployment, public domain assignment, production website HTTPS/DNS cutover and retirement of old hosting remain pending. No production data has been pulled. The owner changed dashboard DNS; the agent has not cut over production website DNS or migrated its database.
