@@ -5,6 +5,8 @@ import { NextResponse } from "next/server";
 import { ZodError, type ZodType } from "zod";
 import { AUDIT_COOKIE, PRIVATE_HEADERS } from "./config";
 import { AuditError } from "./errors";
+import { toCustomerAudit } from "./customer-report";
+import type { AuditView } from "./types";
 
 export function hashAuditCredential(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -61,6 +63,10 @@ export async function readAuditBody<T>(request: Request, schema: ZodType<T>): Pr
 
 export function auditJson(data: unknown, status = 200): NextResponse {
   return NextResponse.json(data, { status, headers: PRIVATE_HEADERS });
+}
+
+export function customerAuditJson(audit: AuditView, status = 200): NextResponse {
+  return auditJson({ audit: toCustomerAudit(audit) }, status);
 }
 
 export function auditErrorResponse(error: unknown): NextResponse {

@@ -13,7 +13,7 @@ npm.cmd ci
 npm.cmd run audit:migrate
 ```
 
-The migration command applies versioned audit migrations, including `002_audit_report_downloads.sql` for PDF contact capture, and records which files were applied. It creates only the `website_audit*` tables and indexes. It does not migrate or replace existing invoice, employee or payment data. Run it against each deployment database before enabling a new version.
+The migration command applies versioned audit migrations, including `002_audit_report_downloads.sql` for PDF contact capture and `003_audit_ai_usage.sql` for shared Gemini usage limits, and records which files were applied. It creates only the `website_audit*` tables and indexes. It does not migrate or replace existing invoice, employee or payment data. Run it against each deployment database before enabling a new version.
 
 Keep the worker running in one terminal:
 
@@ -67,12 +67,27 @@ The core collector, rule engine, report, PDF and saved enquiry work without a ne
 | --- | --- | --- |
 | Google PageSpeed Insights | `AUDIT_PAGESPEED_ENABLED=true` and `PAGESPEED_API_KEY` | Lab results are marked unavailable; no score is invented |
 | Direct CrUX field data | `AUDIT_CRUX_ENABLED=true` and `CRUX_API_KEY` | Real-user data is marked unavailable, not failed |
-| Gemini language editing | `AUDIT_AI_ENABLED=true`, `GEMINI_API_KEY`, explicit `AUDIT_AI_MODEL` | Deterministic recommendation wording remains intact |
+| Deeper Gemini analysis | `AUDIT_AI_ENABLED=true`, `GEMINI_API_KEY`, supported `AUDIT_AI_MODEL` | Plain-language report generated from the checks remains available |
 | Resend notifications | `AUDIT_SEND_EMAIL=true`, `RESEND_API_KEY`, verified `AUDIT_FROM_EMAIL`, intended `AUDIT_TO_EMAIL` | Enquiries remain saved with notification pending |
 
 PageSpeed measures at most four declared page/device samples: a primary page on mobile and desktop and up to two additional pages on mobile. Its external browser and resource requests are operated by Google, separately from the collector. CrUX tries mobile URL data and then origin data; many sites lack sufficient public data. Lab TBT is not INP.
 
-Gemini can edit only bounded action and verification wording for existing rule-selected recommendations. Strict validation rejects unsupported output and preserves the original. It cannot select modules, change evidence or scores, assert trends, or activate software. There is no default model. Do not enable a provider without confirming its own availability, account quota, data terms and spending controls.
+Gemini receives bounded, redacted excerpts from up to eight readable public pages, a limited set of checks/recommendations and categorical business context. It can add a plain-language overview, explanations, evidence-linked strengths and up to three tentative ideas/questions. This advisory layer is stored separately from the original checks. It cannot change technical findings, measurements, confidence, priorities, prerequisites or visitor decisions, and cannot claim live trend/competitor research. Invalid, unavailable, timed-out or quota-limited output falls back to the report prepared from checks. A business-answer update rebuilds the advisory layer; a newer edit or deletion wins over a late AI result.
+
+To enable the free-tier integration:
+
+1. Create a key in a Google AI Studio project that uses the free tier, with no billing upgrade. The app cannot determine billing status from an API key; model eligibility alone does not guarantee a request is unbilled.
+2. Store `GEMINI_API_KEY` as a server/worker secret. Set `AUDIT_AI_ENABLED=true` and `AUDIT_AI_MODEL=gemini-3.8-flash`. The supported alternative is `gemini-3.5-flash-lite`. These models were listed with free standard input/output on [Google's pricing page](https://ai.google.dev/gemini-api/docs/pricing) on 24 October 2026. Recheck availability and project limits before deployment.
+3. Run migrations and restart both web and worker. A missing key or disabled flag makes no provider request. No live Gemini request was made during local verification because no key is configured.
+4. Start with `AUDIT_AI_DAILY_LIMIT=20` and `AUDIT_AI_MINUTE_LIMIT=2`, lowering them to fit the project's actual quota. These are shared, persistent application caps, not claims about Google's quota. Failures count against the budget. There is one bounded request per enrichment attempt, no retry, paid-model fallback, grounding search or tools. Input is capped at 32 KB, response at 48 KB, output at 6,144 tokens and provider time at 20 seconds. Old aggregate budget windows are removed after two days; they contain no customer identifiers.
+
+Free-tier inputs and outputs may be used to improve Google's products, including human review under [Google's terms](https://ai.google.dev/gemini-api/terms). The payload excludes download/enquiry contact details and messages, credentials, raw HTML, page headers, form fields and full URLs. Redaction reduces direct personal identifiers in public excerpts; it is not a guarantee that arbitrary public text contains no identifying information. Use only intentionally public content. No paid account or billing configuration is created by this code.
+
+## Customer and Viviz reports
+
+Customer report pages and PDFs explain the gap, why it matters to visitors, the suggested change and a practical sequence. Every public audit API uses an explicit customer response contract; technical page bodies, response headers, raw measurements, rule diagnostics and the full stored report are excluded, rather than hidden in the UI. Existing stored reports receive the same plain-language projection. Advisory ideas are clearly labelled and do not become selectable verified findings.
+
+Viviz staff use `/invoice/website-audits` and `/invoice/website-audits/[id]` through the existing invoice administration login at `/invoice/login`. The existing `INVOICE_PASSWORD` and `INVOICE_SESSION_SECRET` must be configured. This reuses the existing trusted administration access; it does not introduce employee-level roles. Staff can read technical checks, evidence, measurements, retained page observations, categorical customer context, choices and provisional AI analysis. The technical PDF is available at `GET /api/invoices/website-audits/[id]/report`. Both pages and the data layer recheck staff access; an anonymous report ownership cookie grants no technical access. Staff responses are private, uncached and excluded from indexing. Report expiry/deletion revokes staff access too.
 
 ## Deployment
 
@@ -101,6 +116,8 @@ Web and worker each use a PostgreSQL pool of up to four connections. Size connec
 | `POST /api/audits/[id]/enquiry` | Save a consented enquiry and selected revision snapshot |
 
 All mutations require a same-origin request; routes with structured payloads require bounded JSON bodies. Read, export and mutation routes enforce the ownership cookie; an unguessable ID alone grants no report access. Selection and enquiry requests use revision checks; resubmission keys prevent accidental duplicate jobs and enquiries.
+
+Audit JSON returned to customers contains only the customer response contract. Full technical exports use the separate staff-only route above.
 
 ## Privacy and retention
 

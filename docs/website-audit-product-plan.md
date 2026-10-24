@@ -52,6 +52,8 @@ The central value is the improvement roadmap and a tailored **Recommended Growth
 
 Do not require registration or an email address to view results online. Require a name and email before PDF download, and separately request contact details when a visitor asks for implementation help. A PDF download does not submit an enquiry or authorize marketing. Deliver the same findings regardless of whether the visitor becomes a lead.
 
+Customer reports use everyday language to explain what needs attention, why it matters to visitors and the next useful action. Technical diagnostics, retained observations and measurements are available only through Viviz staff access. Optional Gemini free-tier analysis may add grounded explanations and clearly tentative ideas; it cannot replace measured findings or establish current trends. Keep a useful plain-language report available when a model key, quota or service is unavailable. See the operating instructions for account data-use terms and usage controls.
+
 ## Launch scope
 
 The product promise is a **multi-page public website audit with explicit coverage**. “Complete website audit” describes the long-term ambition; a single URL cannot provide access to every page, authenticated feature, or business process.

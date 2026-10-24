@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 };
 
 const checks = [
-  { icon: ScanLine, title: "Website foundations", body: "Inspect public-page technical signals, search metadata, content structure and observed accessibility issues. See the pages behind every finding." },
+  { icon: ScanLine, title: "A report you can understand", body: "See what needs attention, why it matters to your visitors, and what to improve next. No technical knowledge needed." },
   { icon: Sparkles, title: "Features with a purpose", body: "Explore booking, enquiry handling, trust content and other capabilities when the evidence or your business answers support them." },
-  { icon: ListChecks, title: "A plan you can act on", body: "Get a suggested sequence with effort, prerequisites and ways to verify the work. Choose the improvements you want to discuss." },
+  { icon: ListChecks, title: "A plan you can act on", body: "Start with the most useful changes, then explore additions that suit your customers. Choose the improvements you want to discuss." },
 ];
 
 export default function WebsiteAuditPage() {
@@ -34,7 +34,8 @@ export default function WebsiteAuditPage() {
         <details className={styles.faq}><summary>Does the audit check the complete website?</summary><p>The free audit inspects up to 25 discovered public pages on the submitted website. The report identifies pages checked, restrictions and unavailable checks. Authenticated areas, completed purchases, internal processes and exhaustive accessibility testing need a deeper review.</p></details>
         <details className={styles.faq}><summary>Will it tell me which trending features I am missing?</summary><p>It suggests relevant capabilities based on the observed website and your optional business answers. A feature is not necessary simply because it is popular. “Not observed” means we did not find it on checked pages; it does not establish that your business lacks it. The launch recommendations use a controlled rule catalog rather than a live trend feed.</p></details>
         <details className={styles.faq}><summary>Which businesses get the most tailored recommendations?</summary><p>The initial specialist assessments cover B2B/professional services and local-service businesses. Other website types receive general website checks and conservative recommendations. You can correct the business context in your report.</p></details>
-        <details className={styles.faq}><summary>Can I use my report without speaking to Viviz?</summary><p>Yes. No registration or email is needed to read the report or download its PDF. Reports are private to the browser that created them for 30 days. You can separately select improvements and ask Viviz for implementation help.</p></details>
+        <details className={styles.faq}><summary>Does AI help prepare the report?</summary><p>When configured and available, Gemini reviews limited public-page excerpts alongside the website checks to explain gaps and suggest ideas worth discussing. Suggestions need confirmation; they do not prove a feature is missing or guarantee business results. The standard report remains available if AI is unavailable. Google may use free-tier API inputs and outputs to improve its products; we exclude your download and enquiry contact details. <Link href="/privacy#website-audit">Read the audit privacy details</Link>.</p></details>
+        <details className={styles.faq}><summary>Can I use my report without speaking to Viviz?</summary><p>Yes. No registration or email is needed to read the report online. We ask for your name and email before a PDF download. Reports are private to the browser that created them for 30 days. You can separately select improvements and ask Viviz for implementation help.</p></details>
       </section>
     </div>
   </div>;

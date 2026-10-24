@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BASE_URL } from "@/lib/config";
 import { SAMPLE_AUDIT } from "@/lib/website-audit/sample";
+import { toCustomerAudit } from "@/lib/website-audit/customer-report";
 import AuditReport from "@/components/website-audit/AuditReport";
 
 export const metadata: Metadata = {
@@ -11,4 +12,4 @@ export const metadata: Metadata = {
   openGraph: { title: "Sample Website Audit | Viviz", description: "An illustrative website improvement plan and Growth Stack.", url: `${BASE_URL}/website-audit/example` },
 };
 
-export default function SampleAuditPage() { return <AuditReport id={SAMPLE_AUDIT.id} initialAudit={SAMPLE_AUDIT} demo />; }
+export default function SampleAuditPage() { return <AuditReport id={SAMPLE_AUDIT.id} initialAudit={toCustomerAudit(SAMPLE_AUDIT)} demo />; }

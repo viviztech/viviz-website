@@ -160,6 +160,36 @@ export interface AuditReport {
   limitations: string[];
   collectionMode: "html" | "rendered";
   explanationMode: "rules" | "ai_assisted";
+  aiAnalysis?: AuditAiAnalysis;
+}
+
+/** Advisory interpretation of retained evidence; never replaces measured findings. */
+export interface AuditAiAnalysis {
+  summary: string;
+  strengths: { text: string; evidenceIds: string[] }[];
+  findingExplanations: { findingId: string; title: string; observation: string; why: string; action: string }[];
+  recommendationExplanations: { recommendationId: string; title: string; reason: string; benefit: string; action: string; tradeoff: string }[];
+  insights: { id: string; title: string; reason: string; suggestion: string; evidenceIds: string[]; question: string }[];
+  nextSteps: string[];
+}
+
+/** Explicit customer response contract: technical evidence stays on the server. */
+export interface CustomerReport {
+  summary: string;
+  businessContext: string;
+  strengths: string[];
+  gaps: {
+    id: string; title: string; observation: string; why: string; action: string;
+    priority: Finding["severity"]; confidence: Confidence; pages: string[];
+  }[];
+  improvements: {
+    id: string; code: string; title: string; reason: string; benefit: string; action: string; tradeoff: string;
+    sequence: ModuleSuggestion["sequence"]; level: ModuleSuggestion["level"]; confidence: Confidence; prerequisites: string[];
+  }[];
+  ideas: { id: string; title: string; reason: string; suggestion: string; question: string; pages: string[] }[];
+  nextSteps: string[];
+  scopeNote: string;
+  analysisMode: "rules" | "ai_assisted";
 }
 
 export interface AuditView {
@@ -178,6 +208,8 @@ export interface AuditView {
   decisions: Record<string, RecommendationDecision>;
   error: string | null;
 }
+
+export type CustomerAuditView = Omit<AuditView, "report"> & { report: CustomerReport | null };
 
 export interface AnalyzeInput {
   url: string;

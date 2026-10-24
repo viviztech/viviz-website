@@ -2,7 +2,7 @@ import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import { analyzeWebsite } from "./analyze";
-import { enhanceAuditExplanations } from "./ai";
+import { analyzeAuditWithGemini } from "./deep-analysis";
 import { auditPool, auditTransaction } from "./database";
 import { auditLimits } from "./config";
 import { AuditError } from "./errors";
@@ -124,7 +124,7 @@ export async function createQueuedAudit(input: {
 }
 
 export async function updateOwnedAssessment(id: string, owner: string | null, revision: number, assessment: BusinessAssessment): Promise<AuditView> {
-  return auditTransaction(async (client) => {
+  const updated = await auditTransaction(async (client) => {
     const row = await ownedLocked(client, id, owner);
     if (row.revision !== revision) throw new AuditError("This report has changed. Refresh it and review the current recommendations.", 409);
     if (["canceled", "failed"].includes(row.status)) throw new AuditError("Start a new audit to reassess this website.", 409);
@@ -145,6 +145,12 @@ export async function updateOwnedAssessment(id: string, owner: string | null, re
     await client.query("INSERT INTO website_audit_assessment_revisions (audit_id,revision,assessment) VALUES ($1,$2,$3::jsonb)", [id, result.rows[0].revision, JSON.stringify(assessment)]);
     return view(result.rows[0]);
   });
+  if (!updated.report) return updated;
+  // Keep provider latency outside locks. A later edit or deletion always wins.
+  const explained = await analyzeAuditWithGemini(updated.report);
+  if (explained === updated.report) return updated;
+  const saved = await auditPool().query<AuditRow>("UPDATE website_audits SET report=$4::jsonb,revision=revision+1,updated_at=now() WHERE id=$1 AND owner_hash=$2 AND revision=$3 AND expires_at>now() AND status IN ('complete','partial') RETURNING *", [id, owner, updated.revision, JSON.stringify(explained)]);
+  return saved.rows[0] ? view(saved.rows[0]) : getOwnedAudit(id, owner);
 }
 
 export async function decideOwnedRecommendation(id: string, owner: string | null, revision: number, recommendationId: string, decision: RecommendationDecision): Promise<AuditView> {
@@ -246,7 +252,7 @@ export async function finishAudit(id: string, leaseToken: string, result: CrawlR
   if (!initial) return;
   const initialReport = analyzeWebsite({ url: initial.url, pages: result.pages, assessment: initial.assessment, performance: result.performance, fieldPerformance: result.fieldPerformance, limitations: result.limitations });
   // Optional external work occurs outside the database lock. A newer assessment wins.
-  const explainedReport = await enhanceAuditExplanations(initialReport);
+  const explainedReport = await analyzeAuditWithGemini(initialReport);
   await auditTransaction(async (client) => {
     const current = await client.query<AuditRow>("SELECT * FROM website_audits WHERE id=$1 AND lease_token=$2 AND status='running' AND expires_at>now() FOR UPDATE", [id, leaseToken]);
     const row = current.rows[0];

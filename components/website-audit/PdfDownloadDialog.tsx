@@ -7,7 +7,7 @@ import type { AuditView } from "@/lib/website-audit/types";
 import styles from "./audit.module.css";
 
 type Props = {
-  audit: AuditView;
+  audit: Pick<AuditView, "id" | "revision" | "hostname">;
   open: boolean;
   onClose: () => void;
   onBusyChange: (busy: boolean) => void;

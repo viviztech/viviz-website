@@ -1,6 +1,6 @@
 import { decideOwnedRecommendation } from "@/lib/website-audit/repository";
 import { decisionSchema } from "@/lib/website-audit/validation";
-import { auditJson, auditErrorResponse, getAuditOwner, readAuditBody, requireSameOrigin } from "@/lib/website-audit/http";
+import { customerAuditJson, auditErrorResponse, getAuditOwner, readAuditBody, requireSameOrigin } from "@/lib/website-audit/http";
 
 export const runtime = "nodejs";
 
@@ -9,6 +9,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     requireSameOrigin(request);
     const data = await readAuditBody(request, decisionSchema);
     const { id, recommendationId } = await params;
-    return auditJson({ audit: await decideOwnedRecommendation(id, await getAuditOwner(), data.revision, recommendationId, data.decision) });
+    return customerAuditJson(await decideOwnedRecommendation(id, await getAuditOwner(), data.revision, recommendationId, data.decision));
   } catch (error) { return auditErrorResponse(error); }
 }
