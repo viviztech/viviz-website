@@ -49,6 +49,30 @@ export async function getOwnedAudit(id: string, owner: string | null): Promise<A
   return view(result.rows[0]);
 }
 
+export interface ReportDownloadInput {
+  revision: number;
+  idempotencyKey: string;
+  name: string;
+  email: string;
+}
+
+export async function recordOwnedReportDownload(id: string, owner: string | null, input: ReportDownloadInput): Promise<AuditView> {
+  return auditTransaction(async (client) => {
+    const row = await ownedLocked(client, id, owner);
+    if (!row.report || !["complete", "partial"].includes(row.status)) throw new AuditError("The report is not ready to download yet.", 409);
+    if (row.revision !== input.revision) throw new AuditError("This report has changed. Review the latest report before downloading.", 409);
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`audit-downloads:${owner}`]);
+    const digest = requestDigest({ auditId: id, ...input });
+    const existing = await client.query<{ request_hash: string }>("SELECT request_hash FROM website_audit_report_downloads WHERE owner_hash=$1 AND idempotency_key=$2", [owner, input.idempotencyKey]);
+    if (existing.rows[0]) {
+      if (existing.rows[0].request_hash !== digest) throw new AuditError("These download details have changed. Please try a new download request.", 409);
+      return view(row);
+    }
+    await client.query("INSERT INTO website_audit_report_downloads (id,audit_id,owner_hash,idempotency_key,request_hash,report_revision,name,email,expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)", [randomUUID(), id, owner, input.idempotencyKey, digest, row.revision, input.name, input.email, row.expires_at]);
+    return view(row);
+  });
+}
+
 async function ownedLocked(client: PoolClient, id: string, owner: string | null): Promise<AuditRow> {
   if (!owner || !isAuditId(id)) throw new AuditError("Report not found in this browser.", 404);
   const result = await client.query<AuditRow>("SELECT * FROM website_audits WHERE id=$1 AND owner_hash=$2 FOR UPDATE", [id, owner]);
@@ -150,6 +174,7 @@ export async function deleteOwnedAudit(id: string, owner: string | null): Promis
     // Tombstone the queue entry first. Late worker writes require its active lease.
     await client.query("UPDATE website_audits SET status='deleted',stage='finished',url='',hostname='',origin='',pages='[]',collection_limitations='[]',report=NULL,assessment='{}',decisions='{}',error=NULL,lease_token=NULL,lease_expires_at=NULL,updated_at=now() WHERE id=$1 AND owner_hash=$2", [id, owner]);
     await client.query("DELETE FROM website_audit_assessment_revisions WHERE audit_id=$1", [id]);
+    await client.query("DELETE FROM website_audit_report_downloads WHERE audit_id=$1", [id]);
   });
 }
 
@@ -249,6 +274,7 @@ export async function expireAuditData(): Promise<void> {
     await client.query("UPDATE website_audits SET status='failed',stage='finished',lease_token=NULL,lease_expires_at=NULL,error='The scan could not finish. Please start a new audit.',updated_at=now() WHERE status IN ('running','queued') AND (created_at<now()-INTERVAL '15 minutes' OR (attempts>=2 AND lease_expires_at<now()))");
     const expired = await client.query<{ id: string }>("UPDATE website_audits SET status='expired',stage='finished',url='',hostname='',origin='',pages='[]',collection_limitations='[]',report=NULL,assessment='{}',decisions='{}',error=NULL,lease_token=NULL,lease_expires_at=NULL WHERE expires_at<now() AND status NOT IN ('expired','deleted') RETURNING id");
     for (const row of expired.rows) await client.query("DELETE FROM website_audit_assessment_revisions WHERE audit_id=$1", [row.id]);
+    await client.query("DELETE FROM website_audit_report_downloads WHERE expires_at<=now() OR audit_id IN (SELECT id FROM website_audits WHERE status IN ('expired','deleted'))");
     await client.query("DELETE FROM website_audits WHERE expires_at<now()-INTERVAL '1 day' AND status IN ('expired','deleted')");
     await client.query("DELETE FROM website_audit_workers WHERE last_seen_at<now()-INTERVAL '1 day'");
     await client.query("DELETE FROM website_audit_enquiries WHERE created_at<now()-INTERVAL '24 months'");

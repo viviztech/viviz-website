@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Clock3, Download, ExternalLink, FileSearch, Globe2, LoaderCircle, LockKeyhole, RefreshCw, ShieldCheck, Sparkles, Trash2, X } from "lucide-react";
 import type { AuditView, BusinessAssessment, Category, Finding, ModuleSuggestion, RecommendationDecision } from "@/lib/website-audit/types";
 import AssessmentFields, { BUSINESS_LABELS, TASK_LABELS } from "./AssessmentFields";
+import PdfDownloadDialog from "./PdfDownloadDialog";
 import TaskMap from "./TaskMap";
 import styles from "./audit.module.css";
 
@@ -76,6 +77,7 @@ export default function AuditReport({ id, initialAudit = null, demo = false }: {
   const [retry, setRetry] = useState(0);
   const [loading, setLoading] = useState(!initialAudit);
   const [busy, setBusy] = useState("");
+  const [pdfOpen, setPdfOpen] = useState(false);
   const [view, setView] = useState<View>("overview");
   const [category, setCategory] = useState<Category | "all">("all");
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
@@ -158,18 +160,6 @@ export default function AuditReport({ id, initialAudit = null, demo = false }: {
     } catch (cause) { setError(cause instanceof Error ? cause.message : "The report could not be deleted."); }
     finally { setBusy(""); setConfirm(null); }
   }
-  async function download() {
-    if (demo || busy) return;
-    setBusy("pdf"); setError("");
-    try {
-      const response = await fetch(`${endpoint}/report`, { cache: "no-store" });
-      if (!response.ok) { const data = await response.json() as { error?: string }; throw new Error(data.error || "The PDF could not be prepared. Try again."); }
-      const blob = await response.blob();
-      const href = URL.createObjectURL(blob);
-      const anchor = document.createElement("a"); anchor.href = href; anchor.download = `viviz-website-audit-${audit?.hostname || "report"}.pdf`; document.body.append(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(href);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "The PDF could not be downloaded."); }
-    finally { setBusy(""); }
-  }
   function toggleFinding(key: string) { setSelected(previous => { const next = new Set(previous); if (next.has(key)) next.delete(key); else next.add(key); return next; }); }
   function showEnquiry() { setView("plan"); setTimeout(() => document.getElementById("implementation-enquiry")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }), 40); }
 
@@ -185,7 +175,8 @@ export default function AuditReport({ id, initialAudit = null, demo = false }: {
   const visibleFindings = report?.findings.filter(item => category === "all" || item.category === category) ?? [];
 
   return <div className={styles.root}>
-    <div className={styles.reportHeader}><div className={styles.wrap}><Link href="/website-audit" className={styles.breadcrumb}><ArrowLeft size={12} aria-hidden="true" /> Website Audit</Link><div className={styles.reportTitle}><div><p className={styles.eyebrow}>{demo ? "Sample website improvement plan" : "Your private website improvement plan"}</p><h1>{audit?.hostname || (loading ? "Preparing your audit…" : "Website audit")}</h1>{audit ? <p className={styles.url}>{audit.url}</p> : null}</div><div className={styles.actions}>{report ? <button type="button" className={styles.secondary} onClick={() => void download()} disabled={disabled}>{busy === "pdf" ? <LoaderCircle size={14} className={styles.spin} aria-hidden="true" /> : <Download size={14} aria-hidden="true" />}Download PDF</button> : null}{demo ? <Link className={styles.button} href="/website-audit">Audit my website <ArrowRight size={14} aria-hidden="true" /></Link> : <span className={styles.badge}><LockKeyhole size={11} aria-hidden="true" /> Browser private</span>}</div></div>{audit ? <div className={styles.meta}><span><Globe2 size={12} aria-hidden="true" /> {audit.progress.checked} checked · {audit.progress.discovered} discovered · limit {audit.progress.limit}</span><span><Clock3 size={12} aria-hidden="true" /> {demo ? "Illustrative report" : `Started ${date(audit.createdAt)}`}</span>{!demo ? <span>Expires {date(audit.expiresAt)}</span> : null}<span>Revision {audit.revision}</span></div> : null}</div></div>
+    {audit && report && !demo ? <PdfDownloadDialog audit={audit} open={pdfOpen} onClose={() => setPdfOpen(false)} onBusyChange={value => setBusy(value ? "pdf" : "")} onConflict={refresh} /> : null}
+    <div className={styles.reportHeader}><div className={styles.wrap}><Link href="/website-audit" className={styles.breadcrumb}><ArrowLeft size={12} aria-hidden="true" /> Website Audit</Link><div className={styles.reportTitle}><div><p className={styles.eyebrow}>{demo ? "Sample website improvement plan" : "Your private website improvement plan"}</p><h1>{audit?.hostname || (loading ? "Preparing your audit…" : "Website audit")}</h1>{audit ? <p className={styles.url}>{audit.url}</p> : null}</div><div className={styles.actions}>{report ? <button type="button" className={styles.secondary} onClick={() => setPdfOpen(true)} aria-haspopup="dialog" disabled={disabled}>{busy === "pdf" ? <LoaderCircle size={14} className={styles.spin} aria-hidden="true" /> : <Download size={14} aria-hidden="true" />}Download PDF</button> : null}{demo ? <Link className={styles.button} href="/website-audit">Audit my website <ArrowRight size={14} aria-hidden="true" /></Link> : <span className={styles.badge}><LockKeyhole size={11} aria-hidden="true" /> Browser private</span>}</div></div>{audit ? <div className={styles.meta}><span><Globe2 size={12} aria-hidden="true" /> {audit.progress.checked} checked · {audit.progress.discovered} discovered · limit {audit.progress.limit}</span><span><Clock3 size={12} aria-hidden="true" /> {demo ? "Illustrative report" : `Started ${date(audit.createdAt)}`}</span>{!demo ? <span>Expires {date(audit.expiresAt)}</span> : null}<span>Revision {audit.revision}</span></div> : null}</div></div>
     <div className={`${styles.wrap} ${styles.reportContent}`}>
       {demo ? <div className={styles.notice}><strong>Illustrative sample, not a live audit.</strong> This fictional business demonstrates the report format and recommendation logic. Measurements and observations are examples. Selections, editing, enquiry sending and PDF download are disabled. <Link href="/website-audit">Start your own free audit</Link>.</div> : null}
       {error ? <div className={styles.error} role="alert"><p>{error}</p><button type="button" className={styles.secondary} style={{ marginTop: 10 }} onClick={() => { setError(""); setRetry(value => value + 1); }}><RefreshCw size={12} aria-hidden="true" /> Reload report</button>{!audit ? <p className={styles.hint} style={{ marginTop: 12 }}>Use the browser that created this audit. Reports expire after 30 days, and clearing cookies removes access.</p> : null}</div> : null}

@@ -13,7 +13,7 @@ npm.cmd ci
 npm.cmd run audit:migrate
 ```
 
-The additive migration creates only the `website_audit*` tables and indexes. It has been applied to the configured local development database. It does not migrate or replace existing invoice, employee or payment data. Apply it to each deployment database before enabling the feature.
+The migration command applies versioned audit migrations, including `002_audit_report_downloads.sql` for PDF contact capture, and records which files were applied. It creates only the `website_audit*` tables and indexes. It does not migrate or replace existing invoice, employee or payment data. Run it against each deployment database before enabling a new version.
 
 Keep the worker running in one terminal:
 
@@ -97,14 +97,16 @@ Web and worker each use a PostgreSQL pool of up to four connections. Size connec
 | `POST /api/audits/[id]/cancel` | Cancel collection without deleting the audit entry |
 | `PATCH /api/audits/[id]/assessment` | Update visitor answers using the current revision |
 | `POST /api/audits/[id]/recommendations/[recommendationId]/decision` | Include, defer or reject a recommendation using the current revision |
-| `GET /api/audits/[id]/report` | Download the private PDF |
+| `POST /api/audits/[id]/report` | Validate name/email and the current revision, save download contact details, then return the private PDF |
 | `POST /api/audits/[id]/enquiry` | Save a consented enquiry and selected revision snapshot |
 
 All mutations require a same-origin request; routes with structured payloads require bounded JSON bodies. Read, export and mutation routes enforce the ownership cookie; an unguessable ID alone grants no report access. Selection and enquiry requests use revision checks; resubmission keys prevent accidental duplicate jobs and enquiries.
 
 ## Privacy and retention
 
-The `viviz_audit_session` cookie lasts up to 30 days; the database retains its hash, not the raw token. IPs are hashed for quota counting. Clearing cookies loses report access. There is no registration or compulsory email gate. Only a consented implementation enquiry adds contact details.
+The `viviz_audit_session` cookie lasts up to 30 days; the database retains its hash, not the raw token. IPs are hashed for quota counting. Clearing cookies loses report access. Viewing the online report does not require registration or an email address. PDF downloads require a name and valid email, collected in a dialog before the download. The POST body also includes `revision` and `idempotencyKey`; a direct GET returns 405 and cannot bypass the form.
+
+Download requests are stored in `website_audit_report_downloads`, separately from implementation enquiries, without sending emails or subscribing the visitor to marketing. Idempotent retries preserve one contact record. Download contact details expire with the report and are removed immediately when the audit is deleted. They are not exposed through report JSON or sent to optional analysis providers.
 
 Audit observations, answers, selections and reports expire after 30 days. Access is denied at expiry even before cleanup. Cleanup clears their substantive data and assessment history, then removes expired/deleted queue records after their expiry plus one day. A delete action immediately clears report/evidence/answers and fences out late worker writes; its minimal quota tombstone can remain until scheduled cleanup.
 

@@ -132,8 +132,12 @@ const sections = [
         body: "You may skip the business questionnaire. Answers are treated as respondent statements, not verified ownership or operating facts. The default assessment uses deterministic rules. Where enabled, Google PageSpeed Insights and CrUX receive the public website address for measurement; an optional Google Gemini explanation service receives limited structured recommendations and evidence summaries, excluding contact details, raw page bodies and credentials. Unconfigured services are not used. Hosting and database providers process stored report data under their applicable service policies.",
       },
       {
+        sub: "PDF report downloads",
+        body: "Viewing your audit online does not require contact details. Before downloading a PDF, we ask for your name and email address and save them with the report revision and request date. These details are retained only for the report's remaining lifetime, up to 30 days, and are removed when you delete the audit. Downloading does not submit an implementation enquiry, subscribe you to marketing, or automatically send an email.",
+      },
+      {
         sub: "Enquiries, retention and deletion",
-        body: "Only when you submit an implementation enquiry do we associate your contact details with the selected assessment snapshot and send a notification through Resend when delivery is enabled. This is an enquiry, not a purchase or software activation. Submitted enquiries may be retained for up to 24 months to respond and follow up. You can delete an audit from its report page; deletion cancels pending work and removes its observations and answers. A separately submitted enquiry is retained for its stated purpose and can be deleted by contacting us. Short-lived hashed browser and network identifiers enforce free-audit limits without recording raw IP addresses in the audit database.",
+        body: "When you separately submit an implementation enquiry, we associate your contact details with the selected assessment snapshot and send a notification through Resend when delivery is enabled. This is an enquiry, not a purchase or software activation. Submitted enquiries may be retained for up to 24 months to respond and follow up. You can delete an audit from its report page; deletion cancels pending work and removes its observations, answers and PDF download contact details. A separately submitted enquiry is retained for its stated purpose and can be deleted by contacting us. Short-lived hashed browser and network identifiers enforce free-audit limits without recording raw IP addresses in the audit database.",
       },
     ],
   },

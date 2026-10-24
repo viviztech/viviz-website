@@ -50,7 +50,7 @@ Target users are small business owners, service companies, and marketing teams c
 
 The central value is the improvement roadmap and a tailored **Recommended Growth Stack**. Website scores alone are already available through products such as [HubSpot Website Grader](https://www.hubspot.com/tests) and [Semrush Site Audit](https://www.semrush.com/siteaudit/). Viviz can distinguish its product through business context, evidence, useful feature recommendations, recognition of existing tools, and a direct path to implementation. This is a positioning hypothesis to validate with prospective clients, rather than a claim that competitors lack these capabilities.
 
-Do not require registration or an email address to view results. Ask for contact details when a visitor requests implementation help. Deliver the same findings regardless of whether the visitor becomes a lead.
+Do not require registration or an email address to view results online. Require a name and email before PDF download, and separately request contact details when a visitor asks for implementation help. A PDF download does not submit an enquiry or authorize marketing. Deliver the same findings regardless of whether the visitor becomes a lead.
 
 ## Launch scope
 
@@ -69,7 +69,7 @@ The product promise is a **multi-page public website audit with explicit coverag
 | Specialist analysis | B2B/service and local-service rulebooks; general analysis for other recognized types |
 | Results | Private report, category summaries, top actions, evidence, feature inventory, coverage and a prerequisite-aware Growth Stack |
 | Visitor decisions | Include in enquiry, not relevant, or consider later; choices remain separate from audit findings |
-| Export | A concise downloadable PDF with scope, findings and evidence references |
+| Export | A concise downloadable PDF with scope, findings and evidence references, after required name/email capture |
 | Lead capture | Visitor selects improvements and submits an implementation enquiry to Viviz |
 | Language | English report interface; flag reduced content-analysis confidence when language support is insufficient |
 

@@ -12,7 +12,7 @@ Updated 24 October 2026. Scope: the free audit and lead-generation flow at `/web
 - Versioned capability catalog and prerequisite-aware Growth Stack, including existing-tool preference, alternatives, operating requirements, verification, effort and staged roadmap.
 - Optional tightly constrained Gemini editing of existing action/verification text, with deterministic fallback and no implicit model.
 - Durable PostgreSQL queue, worker heartbeat, fenced leases, progress checkpoints, cancellation, bounded retry/recovery, rolling quotas and duplicate submission protection.
-- Browser-private reports, PDF export, answer revision limits, include/defer/reject decisions and revision-fenced enquiry selection.
+- Browser-private reports, PDF export after required name/email capture, answer revision limits, include/defer/reject decisions and revision-fenced enquiry selection. Direct GET PDF requests are rejected; download contacts are stored separately and expire with their report.
 - Transactional, consented implementation enquiries and idempotent notification outbox; Resend delivery remains explicitly opt-in.
 - Thirty-day reports, immediate report deletion/revocation, scheduled retention cleanup and independent enquiry retention disclosure.
 - Site navigation/SEO/privacy integration, additive migration, environment template, standalone worker container and [operating instructions](./WEBSITE_AUDIT_SETUP.md).
@@ -35,11 +35,12 @@ The canonical plan remains the product baseline; this status records the narrowe
 ## Environment and verification
 
 - The configured local PostgreSQL connection is reused; credentials were not copied into documentation.
-- The additive `001_website_audits.sql` migration has been applied locally. Existing business tables are preserved.
-- Final automated run: **61 passed, 0 failed, 0 skipped**, including opt-in local PostgreSQL integration tests. Coverage includes network restrictions, crawl boundaries, deterministic recommendations, mocked AI output, origin/body validation, ownership, quotas, idempotency, stale revisions, cancellation, deletion and expiry.
+- The additive `001_website_audits.sql` and `002_audit_report_downloads.sql` migrations have been applied locally. Existing business tables are preserved. The migration runner records applied files and skips them on later runs.
+- Final automated run: **65 passed, 0 failed, 0 skipped**, including opt-in local PostgreSQL integration tests. Coverage includes network restrictions, crawl boundaries, deterministic recommendations, mocked AI output, origin/body validation, ownership, quotas, idempotency, stale revisions, cancellation, deletion, expiry and PDF contact capture.
 - Production build and TypeScript compilation passed. Targeted ESLint passed for the audit engine, APIs, UI, scripts, tests and all touched site entry points.
 - Browser checks passed at 1440 px and 360 px across the landing page and all five example-report sections: no horizontal overflow, hydration errors or page exceptions. Invalid URL validation, questionnaire limits, filters and disabled sample mutations were verified. Existing third-party analytics requests were blocked by the test environment.
 - A live `example.com` scan passed through submission, durable worker progress, retained HTML observations, private report/PDF access, idempotent enquiry storage and deletion. The PDF contained 12,525 bytes; no notification email was sent, and generated test records were removed.
+- The PDF contact gate passed browser checks at 1440 px and 360 px using an isolated fictional report: blank/invalid fields blocked submission, valid name/email generated a 27,832-byte PDF and one download contact, keyboard focus returned after download, and Escape/Cancel closed the dialog. Direct GET returned 405, missing details returned 400, and another browser returned 404. Deletion removed the download contact; no enquiry was created, no email was sent, and fixture data was removed.
 - One repeat database test encountered PostgreSQL error 53100 (disk space). After reclaiming unused space only in the new audit tables, the final complete suite passed. The system drive hosting local PostgreSQL still had very little free space (about 38 MiB when checked); free sufficient system-drive capacity before sustained local use. No unrelated files or business tables were cleaned.
 - Database integration tests require `AUDIT_DB_TESTS=true` and a migrated local PostgreSQL database. They use fictional rows, clean up their fixtures and do not deliver emails.
 - The application needs both the web server and an independently running worker for real scans. Missing worker readiness produces HTTP 503.

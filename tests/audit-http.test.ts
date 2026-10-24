@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { requireSameOrigin, readAuditBody } from "../lib/website-audit/http";
 import { AuditError } from "../lib/website-audit/errors";
-import { createAuditSchema } from "../lib/website-audit/validation";
+import { createAuditSchema, reportDownloadSchema } from "../lib/website-audit/validation";
 
 test("same-origin guard uses external Host when Next reconstructs an internal URL", () => {
   const request = new Request("http://localhost:3100/api/audits", { method: "POST", headers: { Host: "127.0.0.1:3100", Origin: "http://127.0.0.1:3100", "sec-fetch-site": "same-origin" } });
@@ -25,4 +25,43 @@ test("audit body parsing rejects oversized or malformed JSON before validation",
   const input = { url: "https://example.com/", idempotencyKey: "test-body-contract" };
   const parsed = await readAuditBody(new Request("https://viviz.in/api/audits", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) }), createAuditSchema);
   assert.deepEqual(parsed, input);
+});
+
+test("PDF downloads require a valid name, email, report revision and retry key", async () => {
+  const valid = { revision: 1, idempotencyKey: "report-download-retry", name: "Fictional Reader", email: "reader@fixture.example" };
+  const invalidInputs: unknown[] = [
+    {},
+    { ...valid, name: undefined },
+    { ...valid, email: undefined },
+    { ...valid, name: "" },
+    { ...valid, name: "   " },
+    { ...valid, name: "A" },
+    { ...valid, name: "A".repeat(101) },
+    { ...valid, email: "" },
+    { ...valid, email: "   " },
+    { ...valid, email: "invalid-address" },
+    { ...valid, email: `${"a".repeat(243)}@example.com` },
+    { ...valid, revision: undefined },
+    { ...valid, revision: 0 },
+    { ...valid, revision: 1.5 },
+    { ...valid, idempotencyKey: undefined },
+    { ...valid, idempotencyKey: "short" },
+    { ...valid, idempotencyKey: "invalid retry key" },
+    { ...valid, phone: "+1 555 0100" },
+    { ...valid, consent: true },
+  ];
+  for (const input of invalidInputs) {
+    await assert.rejects(
+      readAuditBody(new Request("https://viviz.in/api/audits/fixture/report", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input),
+      }), reportDownloadSchema),
+      (error: unknown) => error instanceof AuditError && error.status === 400,
+      `Must reject invalid report download input: ${JSON.stringify(input)}`,
+    );
+  }
+  const parsed = await readAuditBody(new Request("https://viviz.in/api/audits/fixture/report", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...valid, name: "  Fictional Reader  ", email: "  reader@fixture.example  " }),
+  }), reportDownloadSchema);
+  assert.deepEqual(parsed, valid);
 });

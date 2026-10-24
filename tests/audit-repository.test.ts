@@ -64,6 +64,9 @@ test("local Postgres audit repository integration", { skip: process.env.AUDIT_DB
   const enquiry = (audit: AuditView, overrides: Partial<EnquiryInput> = {}): EnquiryInput => ({
     revision: audit.revision, idempotencyKey: randomUUID(), name: "Fictional Test Owner", email: "owner@fixture.example", phone: "", message: "Local repository test; do not deliver.", selectedFindingIds: audit.report?.findings[0] ? [audit.report.findings[0].id] : [], ...overrides,
   });
+  const download = (audit: AuditView) => ({
+    revision: audit.revision, idempotencyKey: randomUUID(), name: "Fictional Report Reader", email: "reader@fixture.example",
+  });
   const selectRecommendation = (audit: AuditView) => {
     const recommendation = audit.report?.recommendations.find((item) => item.level !== "not_needed_now");
     assert.ok(recommendation, "The fixture must contain an applicable recommendation.");
@@ -197,6 +200,84 @@ test("local Postgres audit repository integration", { skip: process.env.AUDIT_DB
       await assert.rejects(repository.submitOwnedEnquiry(second.id, owner, { ...input, revision: second.revision }), status(409));
     });
 
+    await t.test("PDF contact capture requires ownership and a current, available report", async () => {
+      const owner = newOwner();
+      const audit = await seedReport(owner);
+      const input = download(audit);
+      await assert.rejects(repository.recordOwnedReportDownload(audit.id, newOwner(), input), status(404));
+      await assert.rejects(repository.recordOwnedReportDownload(audit.id, null, input), status(404));
+      await assert.rejects(repository.recordOwnedReportDownload(randomUUID(), owner, input), status(404));
+      await assert.rejects(repository.recordOwnedReportDownload("invalid-audit-id", owner, input), status(404));
+      await assert.rejects(repository.recordOwnedReportDownload(audit.id, owner, { ...input, revision: audit.revision + 1 }), status(409));
+
+      const pendingOwner = newOwner();
+      const pending = await create(pendingOwner);
+      await assert.rejects(repository.recordOwnedReportDownload(pending.id, pendingOwner, download(pending)), status(409));
+      await pool.query("UPDATE website_audits SET status='partial',report=NULL WHERE id=$1", [pending.id]);
+      await assert.rejects(repository.recordOwnedReportDownload(pending.id, pendingOwner, download(pending)), status(409));
+      await pool.query("UPDATE website_audits SET status='running',report=$2::jsonb WHERE id=$1", [pending.id, JSON.stringify(audit.report)]);
+      await assert.rejects(repository.recordOwnedReportDownload(pending.id, pendingOwner, download(pending)), status(409));
+
+      await pool.query("UPDATE website_audits SET expires_at=now()-INTERVAL '1 second' WHERE id=$1", [audit.id]);
+      await assert.rejects(repository.recordOwnedReportDownload(audit.id, owner, input), status(410));
+      const contacts = await pool.query<{ count: string }>("SELECT count(*) FROM website_audit_report_downloads WHERE owner_hash=ANY($1::text[])", [[owner, pendingOwner]]);
+      assert.equal(Number(contacts.rows[0].count), 0, "Rejected downloads must not retain contact details.");
+    });
+
+    await t.test("concurrent PDF retries save one private contact without changing the report or creating an enquiry", async () => {
+      const owner = newOwner();
+      const audit = await seedReport(owner);
+      const input = download(audit);
+      const reports = await Promise.all(Array.from({ length: 6 }, () => repository.recordOwnedReportDownload(audit.id, owner, clone(input))));
+      for (const returned of reports) {
+        assert.equal(returned.id, audit.id);
+        assert.equal(returned.revision, audit.revision, "Downloading must not invalidate another report action.");
+        assert.deepEqual(returned.report, audit.report);
+        assert.deepEqual(Object.keys(returned).sort(), Object.keys(audit).sort());
+        assert.ok(!JSON.stringify(returned).includes(input.name));
+        assert.ok(!JSON.stringify(returned).includes(input.email));
+        assert.ok(!JSON.stringify(returned).includes(input.idempotencyKey));
+      }
+      assert.deepEqual(await repository.getOwnedAudit(audit.id, owner), audit);
+      const contacts = await pool.query<{ audit_id: string; name: string; email: string; report_revision: number; expires_at: Date; requested_at: Date }>(
+        "SELECT audit_id,name,email,report_revision,expires_at,requested_at FROM website_audit_report_downloads WHERE owner_hash=$1 AND idempotency_key=$2",
+        [owner, input.idempotencyKey],
+      );
+      assert.equal(contacts.rowCount, 1);
+      assert.equal(contacts.rows[0].audit_id, audit.id);
+      assert.equal(contacts.rows[0].name, input.name);
+      assert.equal(contacts.rows[0].email, input.email);
+      assert.equal(contacts.rows[0].report_revision, audit.revision);
+      assert.ok(contacts.rows[0].requested_at instanceof Date);
+      assert.equal(contacts.rows[0].expires_at.toISOString(), audit.expiresAt);
+      const enquiries = await pool.query<{ count: string }>("SELECT count(*) FROM website_audit_enquiries WHERE owner_hash=$1", [owner]);
+      assert.equal(Number(enquiries.rows[0].count), 0, "A PDF download must not create an implementation enquiry.");
+
+      for (const changed of [{ name: "Different Reader" }, { email: "different@fixture.example" }, { revision: audit.revision + 1 }]) {
+        await assert.rejects(repository.recordOwnedReportDownload(audit.id, owner, { ...input, ...changed }), status(409));
+      }
+      const second = await seedReport(owner);
+      await assert.rejects(repository.recordOwnedReportDownload(second.id, owner, { ...input, revision: second.revision }), status(409));
+      const recommendation = selectRecommendation(audit);
+      const changed = await repository.decideOwnedRecommendation(audit.id, owner, audit.revision, recommendation.id, "included");
+      await assert.rejects(repository.recordOwnedReportDownload(audit.id, owner, input), status(409));
+      const later = await repository.recordOwnedReportDownload(audit.id, owner, download(changed));
+      assert.equal(later.revision, changed.revision);
+      assert.deepEqual(later.report, changed.report);
+    });
+
+    await t.test("deleting a report removes PDF contacts and prevents later retries from recreating them", async () => {
+      const owner = newOwner();
+      const audit = await seedReport(owner);
+      const input = download(audit);
+      await repository.recordOwnedReportDownload(audit.id, owner, input);
+      await repository.deleteOwnedAudit(audit.id, owner);
+      await assert.rejects(repository.recordOwnedReportDownload(audit.id, owner, input), status(404));
+      await assert.rejects(repository.recordOwnedReportDownload(audit.id, owner, download(audit)), status(404));
+      const contacts = await pool.query<{ count: string }>("SELECT count(*) FROM website_audit_report_downloads WHERE audit_id=$1", [audit.id]);
+      assert.equal(Number(contacts.rows[0].count), 0);
+    });
+
     await t.test("concurrent scan requests cannot exceed the browser quota", async () => {
       const owner = newOwner();
       process.env.AUDIT_SESSION_DAILY_LIMIT = "1";
@@ -240,6 +321,7 @@ test("local Postgres audit repository integration", { skip: process.env.AUDIT_DB
   } finally {
     try {
       const owned = [...owners];
+      await pool.query("DELETE FROM website_audit_report_downloads WHERE owner_hash=ANY($1::text[])", [owned]);
       await pool.query("DELETE FROM website_audit_enquiries WHERE owner_hash=ANY($1::text[])", [owned]);
       await pool.query("DELETE FROM website_audit_assessment_revisions WHERE audit_id IN (SELECT id FROM website_audits WHERE owner_hash=ANY($1::text[]))", [owned]);
       await pool.query("DELETE FROM website_audits WHERE owner_hash=ANY($1::text[])", [owned]);

@@ -24,6 +24,12 @@ export const updateAssessmentSchema = z.object({ revision: z.number().int().posi
 export const decisionSchema = z.object({
   revision: z.number().int().positive(), decision: z.enum(["included", "not_relevant", "later"]),
 }).strict();
+export const reportDownloadSchema = z.object({
+  revision: z.number().int().positive(),
+  idempotencyKey: idempotencyKeySchema,
+  name: z.string().trim().min(2, "Enter your name (at least 2 characters).").max(100, "Keep your name within 100 characters."),
+  email: z.string().trim().email("Enter a valid email address.").max(254),
+}).strict();
 export const enquirySchema = z.object({
   revision: z.number().int().positive(),
   idempotencyKey: idempotencyKeySchema,
