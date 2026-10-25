@@ -39,19 +39,22 @@ const packages = [
     name: "Starter Website",
     price: "₹9,999",
     audience: "Small businesses and professionals",
-    summary: "A polished online presence with everything customers need to find and contact you.",
+    summary: "Help customers understand your services, trust your business and contact you from any device.",
     icon: Globe2,
     accent: "#00D4FF",
     features: [
-      "Up to 5 pages",
-      "Customised standard layout",
-      "Mobile-friendly design",
-      "WhatsApp click-to-chat",
-      "One contact form",
-      "Basic SEO and analytics",
-      "Domain, hosting and SSL connection",
-      "1 design revision",
-      "15 days bug support",
+      "Up to 5 pages with a customised layout",
+      "Clear service information and next-step buttons",
+      "Mobile-friendly navigation and readable content",
+      "WhatsApp chat, phone and email contact links",
+      "1 contact form with clear labels and validation",
+      "Business details, FAQs and trust sections using your content",
+      "Page titles, descriptions and search-friendly headings",
+      "Image optimisation and loading-speed checks",
+      "Basic visitor analytics setup",
+      "Domain, hosting and HTTPS connection",
+      "Launch review with a plain-language handover checklist",
+      "1 design revision and 15 days bug support",
     ],
   },
   {
@@ -59,21 +62,23 @@ const packages = [
     name: "Business Growth",
     price: "₹24,999",
     audience: "Businesses focused on enquiries",
-    summary: "A brand-led website designed to turn visits into qualified conversations.",
+    summary: "Give each service a clear enquiry route and help your team organise and follow up on interest.",
     icon: Gauge,
     accent: "#8B5CF6",
     popular: true,
     features: [
-      "Up to 10 pages",
-      "Custom brand-focused design",
-      "Mobile-friendly design",
-      "WhatsApp click-to-chat",
-      "Up to 3 enquiry forms",
-      "Page and enquiry admin panel",
-      "Sitemap, indexing and analytics",
-      "Enquiry conversion tracking",
-      "2 design revisions",
-      "30 days bug support",
+      "Up to 10 pages with brand-focused design",
+      "Mobile, contact, image and form basics from Starter",
+      "Focused service pages with clear calls to action",
+      "FAQs, work examples and next-step guidance using your content",
+      "Up to 3 service, quotation or consultation enquiry forms",
+      "Appointment requests or an existing booking link, when needed",
+      "Page and enquiry admin panel with follow-up status",
+      "Agreed enquiry recipient and response handoff",
+      "Sitemap, indexing review and business details for search engines",
+      "Analytics and completed-enquiry event tracking",
+      "Audit-led priorities and launch journey checks",
+      "2 design revisions and 30 days bug support",
     ],
   },
   {
@@ -81,20 +86,23 @@ const packages = [
     name: "E-commerce",
     price: "₹44,999",
     audience: "Businesses selling online",
-    summary: "A complete branded storefront for managing products, orders and payments.",
+    summary: "Help shoppers understand your products, complete a purchase and find support after ordering.",
     icon: ShoppingBag,
     accent: "#10D9A0",
     features: [
-      "Up to 8 content pages plus store",
-      "Branded storefront",
-      "Up to 25 initial products",
+      "Up to 8 content pages plus a branded store",
+      "Up to 25 initial products with clear product details",
+      "Mobile-friendly product browsing, cart and checkout",
+      "WhatsApp support and a contact form",
       "Product and order admin panel",
-      "Cart and checkout",
       "One payment gateway integration",
-      "Product-page SEO foundation",
-      "Purchase conversion tracking",
-      "2 design revisions",
-      "30 days bug support",
+      "Order confirmation emails and customer support guidance",
+      "Delivery, returns and trust sections using your policy content",
+      "Product-page SEO, sitemap and search engine product details",
+      "Analytics and purchase event tracking",
+      "Image optimisation, loading and form-usability checks",
+      "Store launch review covering the agreed purchase journey",
+      "2 design revisions and 30 days bug support",
     ],
   },
 ];
@@ -102,15 +110,22 @@ const packages = [
 const comparison = [
   ["Website scope", "Up to 5 pages", "Up to 10 pages", "8 pages + store"],
   ["Design", "Customised layout", "Brand-focused", "Branded storefront"],
-  ["Mobile-friendly", "Included", "Included", "Included"],
-  ["WhatsApp chat", "Included", "Included", "Included"],
-  ["Forms", "1 contact form", "Up to 3 forms", "Contact + order emails"],
+  ["Mobile navigation and readable content", "Included", "Included", "Included"],
+  ["Contact actions", "WhatsApp, phone + email", "WhatsApp, phone + email", "WhatsApp + customer support"],
+  ["Image descriptions, form labels and validation", "Included", "Included", "Included"],
+  ["Content and trust", "Services, FAQs + business details", "Plus work examples + process", "Product details + store policies"],
+  ["Forms", "1 contact form", "Up to 3 relevant enquiry forms", "Contact + order emails"],
+  ["Appointment or demo requests", "Optional upgrade", "Request form / existing booking link", "Optional upgrade"],
   ["Admin panel", "—", "Pages + enquiries", "Products + orders"],
+  ["Customer handoff", "Agreed contact recipient", "Enquiry status + follow-up ownership", "Order management + customer emails"],
   ["Product uploads", "—", "—", "Up to 25"],
   ["Cart and checkout", "—", "—", "Included"],
   ["Payment gateway", "—", "—", "1 integration"],
-  ["SEO foundation", "Titles + descriptions", "Plus sitemap + indexing", "Plus product SEO"],
-  ["Analytics", "Basic setup", "Enquiry tracking", "Purchase tracking"],
+  ["Search foundations", "Titles, descriptions + headings", "Plus sitemap + indexing review", "Plus sitemap + product SEO"],
+  ["Extra details for search engines", "Optional upgrade", "Business information", "Business + product information"],
+  ["Images and loading checks", "Included", "Included", "Included"],
+  ["Measurement", "Visitor analytics", "Completed-enquiry events", "Purchase events"],
+  ["Launch and handover", "Website checks + clear checklist", "Plus enquiry journey review", "Plus purchase journey review"],
   ["Revision rounds", "1", "2", "2"],
   ["Bug support", "15 days", "30 days", "30 days"],
 ];
@@ -119,6 +134,8 @@ const upgrades = [
   "AI assistant",
   "CRM integration",
   "WhatsApp API automation",
+  "CRM follow-up workflows",
+  "Advanced booking and appointment reminders",
   "Additional pages",
   "Product uploads",
   "Copywriting",
@@ -129,11 +146,13 @@ const upgrades = [
 
 const expectations = [
   "Final pricing is confirmed after we review your exact requirements.",
+  "We use your business goals, existing tools and audit findings to agree what is included; an audit suggestion is not an automatic package inclusion.",
   "You provide approved text, logos, product details and images; content creation is available separately.",
   "Domain, hosting, email, paid licences and third-party subscriptions are charged separately.",
   "Existing domain and hosting can be used when technically compatible; SSL depends on hosting support.",
   "Payment gateway approval and transaction charges are handled by the payment provider.",
   "SEO covers initial setup; ongoing SEO and advertising are separate services.",
+  "Search rankings, sales, performance scores and accessibility certification are not guaranteed by a package or automated audit.",
   "Each revision round is one consolidated set of changes within the agreed scope.",
   "Post-launch support covers bugs in delivered work; new features and updates are quoted separately.",
   "Delivery dates and applicable taxes are confirmed in your quotation.",
@@ -145,7 +164,7 @@ const serviceSchema = {
   name: "Website Design and Development",
   provider: { "@type": "Organization", name: COMPANY_NAME, url: BASE_URL },
   areaServed: "IN",
-  description: "Professional website design and development for small businesses, growing companies and online stores.",
+  description: "Website design and development shaped by business goals and website audit findings, covering mobile usability, clear content, search foundations, enquiries and online sales.",
   offers: packages.map((item) => ({
     "@type": "Offer",
     name: item.name,
@@ -211,8 +230,9 @@ export default function ProductsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-14">
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#00D4FF] mb-3">Choose your starting point</p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Three scopes. One standard of care.</h2>
-            <p className="mt-4 text-[#64748B] leading-relaxed">Start with the package closest to your goal. We confirm the final scope and quote after a short requirements review.</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Three website plans, shaped around your goals.</h2>
+            <p className="mt-4 text-[#94A3B8] leading-relaxed">Use your audit findings to choose what to fix first, improve next and consider later. For a new website, we start with your business goals and agree the pages, forms and customer journeys before quoting.</p>
+            <p className="mt-3 text-sm text-[#94A3B8] leading-relaxed">Every plan covers useful content, mobile navigation, image descriptions, clear form labels, loading checks and a launch review.</p>
           </div>
           <div className="grid lg:grid-cols-3 gap-6 items-stretch">
             {packages.map(({ id, name, price, audience, summary, icon: Icon, accent, popular, features }) => (
@@ -225,7 +245,7 @@ export default function ProductsPage() {
                 <p className="text-sm text-[#94A3B8] leading-relaxed mt-4 min-h-16">{summary}</p>
                 <div className="h-px bg-white/7 my-6" />
                 <ul className="space-y-3 flex-1">
-                  {features.map((feature) => <li key={feature} className="flex gap-3 text-sm text-[#CBD5E1]"><Check size={15} className="shrink-0 mt-0.5" style={{ color: accent }}/><span>{feature}</span></li>)}
+                  {features.map((feature) => <li key={feature} className="flex gap-3 text-sm text-[#CBD5E1]"><Check size={15} aria-hidden="true" className="shrink-0 mt-0.5" style={{ color: accent }}/><span>{feature}</span></li>)}
                 </ul>
                 <div className="mt-8 grid grid-cols-2 gap-2.5">
                   <Link href={`/pay?package=${id}`} className="inline-flex justify-center items-center gap-2 py-3 rounded-xl text-[#07111F] text-sm font-bold transition-colors" style={{ backgroundColor: accent }}>Pay now</Link>
@@ -239,13 +259,15 @@ export default function ProductsPage() {
 
       <section className="py-20 bg-[#080E1C]/60 border-y border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-10"><div><p className="text-xs font-bold tracking-[0.2em] uppercase text-[#10D9A0] mb-3">Side-by-side</p><h2 className="text-3xl font-bold text-white">Compare every package</h2></div><p className="text-sm text-[#64748B] max-w-md">All packages include responsive design, WhatsApp chat, domain and hosting connection, and SSL configuration where supported.</p></div>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-10"><div><p className="text-xs font-bold tracking-[0.2em] uppercase text-[#10D9A0] mb-3">Side-by-side</p><h2 className="text-3xl font-bold text-white">Compare every package</h2></div><p className="text-sm text-[#94A3B8] max-w-md">Compare the features that help customers discover, evaluate, contact and buy from your business.</p></div>
           <div className="overflow-x-auto rounded-2xl border border-white/8 bg-[#0F1929]">
             <table className="w-full min-w-[760px] text-left">
-              <thead><tr className="border-b border-white/10"><th className="p-5 text-xs uppercase tracking-widest text-[#64748B] font-semibold">Feature</th>{packages.map((item)=><th key={item.name} className="p-5 text-sm font-bold text-white">{item.name}<span className="block mt-1 text-lg" style={{color:item.accent}}>{item.price}</span></th>)}</tr></thead>
-              <tbody>{comparison.map(([feature,...values],row)=><tr key={feature} className={row%2 ? "bg-white/[0.018]" : ""}><th className="px-5 py-3.5 text-xs font-semibold text-[#CBD5E1] border-r border-white/5">{feature}</th>{values.map((value,index)=><td key={`${feature}-${packages[index].name}`} className="px-5 py-3.5 text-xs text-[#94A3B8] border-r last:border-r-0 border-white/5">{value === "Included" ? <span className="inline-flex items-center gap-1.5 text-[#10D9A0]"><Check size={13}/>Included</span> : value}</td>)}</tr>)}</tbody>
+              <caption className="sr-only">Website package features and starting prices</caption>
+              <thead><tr className="border-b border-white/10"><th scope="col" className="p-5 text-xs uppercase tracking-widest text-[#64748B] font-semibold">Feature</th>{packages.map((item)=><th scope="col" key={item.name} className="p-5 text-sm font-bold text-white">{item.name}<span className="block mt-1 text-lg" style={{color:item.accent}}>{item.price}</span></th>)}</tr></thead>
+              <tbody>{comparison.map(([feature,...values],row)=><tr key={feature} className={row%2 ? "bg-white/[0.018]" : ""}><th scope="row" className="px-5 py-3.5 text-xs font-semibold text-[#CBD5E1] border-r border-white/5">{feature}</th>{values.map((value,index)=><td key={`${feature}-${packages[index].name}`} className="px-5 py-3.5 text-xs text-[#94A3B8] border-r last:border-r-0 border-white/5">{value === "Included" ? <span className="inline-flex items-center gap-1.5 text-[#10D9A0]"><Check size={13} aria-hidden="true"/>Included</span> : value}</td>)}</tr>)}</tbody>
             </table>
           </div>
+          <p className="mt-4 text-xs leading-relaxed text-[#94A3B8]">Content sections stay within each plan&apos;s page limit. Appointment and quotation forms count toward its form limit. Domain, hosting and HTTPS connection are included; provider fees and advanced integrations are quoted separately.</p>
         </div>
       </section>
 
@@ -253,14 +275,14 @@ export default function ProductsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-8">
           <div className="rounded-2xl border border-white/8 bg-[#0F1929] p-8">
             <div className="w-10 h-10 rounded-xl bg-[#8B5CF6]/10 text-[#8B5CF6] flex items-center justify-center mb-6"><Sparkles size={20}/></div>
-            <h2 className="text-2xl font-bold text-white">Optional upgrades</h2><p className="text-sm text-[#64748B] mt-2 mb-7">Add only what your workflow needs. Each upgrade is quoted separately.</p>
+            <h2 className="text-2xl font-bold text-white">Optional upgrades</h2><p className="text-sm text-[#94A3B8] leading-relaxed mt-2 mb-7">Your audit may suggest an AI assistant, CRM or automation. We review your existing tools, content and team workflow before adding these. Implementation and any provider subscriptions are quoted separately.</p>
             <div className="flex flex-wrap gap-2.5">{upgrades.map(item=><span key={item} className="px-3 py-2 rounded-lg border border-white/8 bg-white/[0.025] text-xs text-[#CBD5E1]">{item}</span>)}</div>
           </div>
           <div className="rounded-2xl border border-white/8 bg-[#0F1929] p-8">
             <div className="w-10 h-10 rounded-xl bg-[#00D4FF]/10 text-[#00D4FF] flex items-center justify-center mb-6"><RefreshCw size={20}/></div>
-            <h2 className="text-2xl font-bold text-white">Already have a website?</h2><p className="text-[#94A3B8] leading-relaxed mt-3">Refresh the design, improve mobile usability, or add features without starting over. We quote redesigns after reviewing your existing website and priorities.</p>
+            <h2 className="text-2xl font-bold text-white">Already have a website?</h2><p className="text-[#94A3B8] leading-relaxed mt-3">Get a clear view of customer blockers, useful improvements and features worth considering. Our audit uses your public pages and optional business answers; AI helps explain the findings when available. We use that plan to scope your redesign or selected improvements.</p>
             <Link href="/website-audit" className="inline-flex items-center gap-2 text-sm font-semibold text-[#57DCFF] mt-7 hover:text-white transition-colors">Start a free website audit <ArrowRight size={15} aria-hidden="true" /></Link>
-            <p className="text-xs leading-relaxed text-[#A7B6CA] mt-3">See the findings and relevant feature opportunities before deciding what to change. No email required.</p>
+            <p className="text-xs leading-relaxed text-[#A7B6CA] mt-3">Read the report online without an email. Downloading the PDF requires your name and email. You choose which improvements to discuss with Viviz.</p>
           </div>
         </div>
       </section>
