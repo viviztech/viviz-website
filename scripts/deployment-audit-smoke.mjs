@@ -62,6 +62,8 @@ void (async () => {
     require(audit.progress?.checked > 0 && Number.isInteger(audit.revision), "audit_observations_missing");
     const report = audit.report;
     require(report && typeof report.summary === "string" && report.summary.trim().length > 0 && Array.isArray(report.gaps) && Array.isArray(report.improvements), "customer_report_invalid");
+    result.aiAssisted = report.analysisMode === "ai_assisted";
+    if (process.env.SMOKE_REQUIRE_AI === "true") require(result.aiAssisted, "ai_enrichment_missing");
     require(!["pages", "findings", "recommendations", "performance", "fieldPerformance", "categories", "checks", "collectionMode"].some((key) => Object.hasOwn(report, key)), "customer_technical_data_exposed");
     result.counts.pagesChecked = audit.progress.checked;
     result.counts.gaps = report.gaps.length;
