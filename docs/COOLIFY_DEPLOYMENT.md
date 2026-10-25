@@ -4,7 +4,7 @@ The selected deployment moves the website, audit worker and PostgreSQL data to t
 
 The owner has configured dashboard DNS and HTTPS. `https://coolify.viviz.in` resolves to `187.127.178.143` with a trusted certificate; its unauthenticated `/api/health` returns 200 and authenticated Coolify API access (4.5.0) works. The token is stored only in ignored private local access configuration; no value is included here. The owner has no SSH access, so preparation uses the authenticated HTTPS API.
 
-The **Viviz Website** project (`p7snoy3td2uupcnbzon9pm1g`) and its **production** environment (`veg72ary2usrrwv4wzudosf4`) are created. The reviewed 39-file deployment change was pushed as commit `b628f68` to `deploy/coolify-hosting`; `main` is unchanged. Coolify application **viviz-website** (`yvvtdetv81ed1rkfluljzlum`) uses that branch, Compose path `/docker-compose.coolify.yml` and predefined networking. Private deployment `de72a07hoa1550myzgv7zrei` built commit `ba80475` and finished healthy; the restored database, web process, worker and audit lifecycle passed the rehearsal checks below. Automatic and preview deployments are disabled. No public application domain or host port is configured, and the proxy's Docker `exposedByDefault=false` setting is verified. Original production credentials and the final website cutover remain pending; Vercel and Neon are still live.
+The **Viviz Website** project (`p7snoy3td2uupcnbzon9pm1g`) and its **production** environment (`veg72ary2usrrwv4wzudosf4`) are created. The deployment changes are pushed to `deploy/coolify-hosting`; `main` is unchanged. Coolify application **viviz-website** (`yvvtdetv81ed1rkfluljzlum`) uses that branch, Compose path `/docker-compose.coolify.yml` and predefined networking. On **25 October 2026**, private deployment `zds2thxgapmdrky1nby4jnm9` built commit `6af2eb7` and finished healthy with the saved staff/provider configuration. Real Gemini-assisted audit and customer/staff report checks passed. Automatic and preview deployments are disabled. No public application domain or host port is configured, and the proxy's Docker `exposedByDefault=false` setting is verified. The final source freeze, restore and website cutover remain pending; Vercel and Neon are still live.
 
 ## Dashboard HTTPS without SSH
 
@@ -20,7 +20,9 @@ The owner completed the dashboard hostname change, and trusted HTTPS/API access 
 
 Create a native Coolify PostgreSQL database as a separate persistent resource, then a Git Application using the repository's `docker-compose.coolify.yml`. Keeping PostgreSQL separate gives it its own persistent volume, lifecycle, backup/import controls and health check. Do not put its data in an application container's writable layer. [Coolify's PostgreSQL guide](https://coolify.io/docs/databases/postgresql) describes the resource and private connection URL.
 
-The inspected Neon source runs PostgreSQL **17.11** with only `plpgsql` installed. The created native target uses **PostgreSQL 17 Alpine**, UUID `muhldiu6qypv45johlplqyb4`, and is healthy. Its named persistent volume `postgres-data-muhldiu6qypv45johlplqyb4` mounts at `/var/lib/postgresql/data`; no public database port is exposed. Use PostgreSQL 17-compatible dump/restore tools and retain private database networking.
+The inspected Neon source runs PostgreSQL **17.11** with only `plpgsql` installed. The healthy private rehearsal target uses **PostgreSQL 17 Alpine**, UUID `muhldiu6qypv45johlplqyb4`, with named persistent volume `postgres-data-muhldiu6qypv45johlplqyb4` mounted at `/var/lib/postgresql/data`. The private application still uses this rehearsal database.
+
+A separate **viviz-postgresql-production** resource (`whogu4vmippacy6c6bpq5zvq`) is healthy, private and empty. Read-only emptiness check import **107** finished with exit code 0. It is reserved for the final source snapshot; no final restore has run and the application has not switched to it. Neither database exposes a public port. Use PostgreSQL 17-compatible dump/restore tools and retain private database networking.
 
 The Git Application contains three services:
 
@@ -32,13 +34,32 @@ The Git Application contains three services:
 
 Choose the repository/branch and a reviewed commit in Coolify. Set the build strategy to **Compose**, base directory to `/`, and Compose location to `/docker-compose.coolify.yml` relative to the repository root. Use the normal managed Compose path rather than Raw deployment. Enable **Advanced > Docker compose > Predefined network > Connect to predefined network** so the application can reach the native PostgreSQL resource on the selected destination network. Set `DATABASE_URL` to that resource's **internal** URL and verify its generated hostname resolves from the application network. [Coolify's Compose documentation](https://coolify.io/docs/applications/builds/docker-compose) explains the networking and migration-service settings.
 
-For the final public cutover, assign only `web` the domain `https://viviz.in:3000`. The suffix routes the proxy to the internal container port; visitors use ordinary HTTPS on port 443. Include the existing `www`/redirect behavior if currently used. Do not add host `ports:` mappings for PostgreSQL, the worker or web port 3000. The verified rehearsal has no application domain and no published service ports; leave production routing and DNS unchanged during preparation.
+For the final public cutover, assign only `web` the domains `https://viviz.in:3000,https://www.viviz.in:3000`, with the per-service redirect set to `non-www`. The suffix routes the proxy to internal port 3000; visitors use ordinary HTTPS on port 443. The prepared API configuration is:
+
+```json
+{
+  "docker_compose_domains": [{
+    "name": "web",
+    "domain": "https://viviz.in:3000,https://www.viviz.in:3000",
+    "redirect": "non-www"
+  }],
+  "is_force_https_enabled": true,
+  "is_permanent_redirect_enabled": true,
+  "instant_deploy": false
+}
+```
+
+Apply it through `PATCH /api/v1/applications/{uuid}` and redeploy during the final cutover. Compose redirects belong inside the service entry. Do not add host `ports:` mappings for PostgreSQL, the worker or web port 3000. This domain configuration has **not been applied**; the verified private deployment has no application domain or published service ports. Leave website DNS unchanged until the final data synchronization is ready. [The v4.5.0 API controller](https://raw.githubusercontent.com/coollabsio/coolify/v4.5.0/app/Http/Controllers/Api/ApplicationsController.php) defines these fields.
 
 ## Private configuration
 
 Enter secrets directly in Coolify's environment settings. Copy existing production values from the owner's settings; do not use local development credentials or print secrets in deployment logs.
 
-The production Vercel values are sensitive/write-only, including the database, staff, email, payment and Gemini settings. They cannot be recovered through the Vercel API. Obtain the required private values from the owner's original provider/account settings; do not extract them through the running application. The owner saved the direct Neon connection privately. The labelled private `.env.coolify-migration` file still awaits the original staff/session, email, payment and optional Gemini values needed for production activation. Corresponding provider fields in Coolify are empty. The private rehearsal uses generated temporary staff credentials held only in ignored local configuration; replace these with the original production values before public activation. No secret values are documented here.
+The production Vercel values are sensitive/write-only and cannot be recovered through its API. The owner has now saved the direct Neon connection, staff password/session secret, Resend key, SabPaisa credentials with `prod` environment, and Gemini key privately in `.env.coolify-migration`. These settings have been applied to Coolify and replaced the temporary staff credentials. Secret values remain runtime-only and are excluded from documentation and Git.
+
+Resend authentication passed a read-only domains request. No email was sent, and no verified `viviz.in` sending domain was established; the existing onboarding sender is retained. Contact-email delivery remains unverified. A local synthetic SabPaisa signature was accepted and a changed signature rejected, with no provider HTTP request or charge; this does not verify live checkout or provider-side credentials.
+
+Gemini model discovery succeeded and the runtime selects `gemini-3.5-flash-lite`, a model with a documented free tier. AI is enabled with application caps of **20 requests per day**, **2 per minute** and **5 audits per day globally**. A real private audit returned `aiAssisted:true` after validated enrichment and passed the report access/contact checks. This verifies the integration, not unlimited free usage or broader model-quality calibration. [Google's pricing documentation](https://ai.google.dev/gemini-api/docs/pricing) describes provider tiers and limits.
 
 | Variable | Migration requirement |
 | --- | --- |
@@ -51,7 +72,7 @@ The production Vercel values are sensitive/write-only, including the database, s
 | `AUDIT_EXECUTION_MODE` | `standalone`; the Compose file fixes this for web and worker |
 | `AUDIT_ENABLED` | Keep `false` through data preparation; enable after migrations and worker readiness |
 | Audit quotas | Start with `AUDIT_GLOBAL_DAILY_LIMIT=5`; adjust after measuring server/database capacity |
-| Optional Gemini | Preserve the chosen free-tier key, supported model and application caps; leave disabled until deliberately configured |
+| Gemini | Configured with `gemini-3.5-flash-lite`; preserve the private key and bounded application caps |
 
 The SabPaisa library accepts older names, but the Compose file uses canonical names. If Vercel currently stores `SABPAISA_CLIENT_CODE`, copy its value into `SABPAISA_MERCHANT_ID`; map `SABPAISA_AUTH_KEY` to `SABPAISA_API_KEY` and `SABPAISA_AUTH_IV` to `SABPAISA_SECRET_KEY`. Preserve the current Google Analytics configuration in the source; removing Vercel Analytics does not replace it with another service. Public build variables must be present before building the web image.
 
@@ -98,11 +119,17 @@ This was a rehearsal snapshot while the live site continued using Neon. No sourc
 
 ### Completed private application rehearsal
 
-Deployment `de72a07hoa1550myzgv7zrei` built and started the actual Docker images on Coolify from product commit `ba80475`. The `migrate` service completed, and `web` and `worker` are healthy. `npm run audit:check` returned `ready:true`, one active worker, all seven audit tables and all three audit migrations. Local Docker is still unavailable; the image-build and runtime evidence comes from the existing Coolify server.
+The initial deployment `de72a07hoa1550myzgv7zrei` built commit `ba80475`. The later configuration deployment `zds2thxgapmdrky1nby4jnm9` built commit `6af2eb7` and finished healthy on **25 October 2026** with the saved staff/provider settings. The `migrate` service completed, and `web` and `worker` are healthy. `npm run audit:check` returned `ready:true`, a recent worker heartbeat, all seven audit tables and AI enabled with its key configured. All three audit migrations were verified separately. Local Docker is still unavailable; the image-build and runtime evidence comes from the existing Coolify server.
 
 Private HTTP checks passed for web health, the home page, logo/signature assets, unauthorized staff rejection, staff login, original invoice/employee records and invoice/offer-letter PDFs. A real `example.com` audit also passed: submission returned 202, another browser received 404, direct GET PDF returned 405, missing download-contact details returned 400, and the customer PDF downloaded successfully after contact capture. Customer output excluded raw technical fields. Unauthorized technical access returned 401; staff login enabled the technical PDF. Both PDFs had valid PDF signatures and private access. Deleting the report returned 200 and a subsequent read returned 404.
 
-The reusable [web smoke script](../scripts/deployment-web-smoke.mjs) and [audit smoke script](../scripts/deployment-audit-smoke.mjs) were committed in `e7ad69f`; `bb90e7f` fixes the test harness's `node:crypto` binding under indirect evaluation. These later commits contain test scripts and do not change the running product image. Tests ran inside the owned containers through disabled tasks; the audit verification task was removed after execution. AI and email delivery stayed off, and no payment or email request was made. Original provider behavior and final production configuration remain unverified.
+The reusable [web smoke script](../scripts/deployment-web-smoke.mjs) and [audit smoke script](../scripts/deployment-audit-smoke.mjs) were committed in `e7ad69f`; `bb90e7f` fixes the test harness's `node:crypto` binding under indirect evaluation. Commit `6af2eb7` adds the opt-in real-AI assertion. Tests ran inside the owned containers through disabled tasks, which were removed afterward. The latest full audit run passed with `aiAssisted:true`, valid private customer/staff PDFs, the contact gate and deletion. Email delivery stayed off, and no payment or email request was made. Live email delivery, provider checkout and the final public production target remain unverified.
+
+### Planned local database backups
+
+Backups are **not configured or active yet**. The final database should receive a daily local backup schedule using the existing server's storage, with S3 disabled and the last 14 successful executions retained. No new paid storage is required. The [v4.5.0 backup API](https://coolify.io/docs/api/endpoints/databases/create-database-backup) supports `save_s3:false`, `dump_all:false`, a string `databases_to_backup`, retention amount 14, retention days 0 and retention storage 0. Omit `disable_local_backup`, which the v4.5.0 controller does not accept.
+
+Confirm the effective server timezone before choosing the daily cron. A 03:00 IST backup uses `30 21 * * *` if the effective timezone is UTC, or `0 3 * * *` if Asia/Kolkata/Calcutta. Create with `backup_now:true` or trigger the existing schedule, then require a new execution with `status:"success"` and positive archive size. Backups remain on the database server; keep the protected migration archive on separate owner-controlled storage as well.
 
 ## Final cutover
 
@@ -119,4 +146,4 @@ If cutover fails before writes reopen, restore routing to the preserved old site
 
 ## Current verification
 
-Current verification passed **110 tests**, TypeScript compilation and the full Next.js production build without runtime secrets. The real Coolify Docker image build, private web/worker startup, schema/heartbeat readiness, existing business-record/PDF checks and the full customer/staff audit lifecycle also passed. The private PostgreSQL target passed the source snapshot restore and read-only comparison, including preservation after application migrations and runtime checks. Earlier Netlify packaging checks are historical verification of the unused alternative. Original staff/provider settings, live provider behavior, the final write freeze/restore, public domain assignment, production website HTTPS/DNS cutover and retirement of old hosting remain pending. The original production site/database remain live on Vercel/Neon. The owner added only the Coolify dashboard DNS record; website routing remains unchanged.
+Earlier automated verification passed **110 tests**, TypeScript compilation and the full Next.js production build without runtime secrets. The real Coolify image build and private runtime checks now also pass with saved staff/provider settings, including worker readiness, existing business records/PDFs and a real Gemini-assisted customer/staff audit lifecycle. The rehearsal database passed restoration and read-only comparison, including preservation after migrations and runtime checks. The separate final production database is healthy and verified empty. Live email delivery, live provider checkout, backup scheduling, the final source write freeze/snapshot/restore, public domains, website HTTPS/DNS cutover and retirement of old hosting remain pending. Vercel and Neon still serve the original production site/database; only the dashboard DNS record has changed.
