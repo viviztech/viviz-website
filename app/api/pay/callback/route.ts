@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parsePaymentResponse } from "@/lib/sabpaisa";
 import { applyPaymentResponse } from "@/lib/payments";
+import { BASE_URL } from "@/lib/config";
 
 // PG 3.0 redirects here with signed transaction fields. Accept GET query
 // parameters and POSTed form/JSON payloads, then verify them server-side.
@@ -22,7 +23,7 @@ async function handleCallback(req: NextRequest): Promise<NextResponse> {
     }
   }
 
-  const resultUrl = new URL("/pay/result", req.nextUrl.origin);
+  const resultUrl = new URL("/pay/result", BASE_URL);
 
   if (!params.get("signature")) {
     resultUrl.searchParams.set("error", "missing_response");
